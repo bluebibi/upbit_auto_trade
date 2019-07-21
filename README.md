@@ -4,11 +4,15 @@
 - conda activate upbit_auto_trade
 - cd ~/git/upbit_auto_trade/
 - pip install --ignore-installed pip
-- pip freeze > requirements.txt
 - pip install -r requirements.txt
 
-### 6. gitignore 적용
+### 2. requirements.txt 구성 
+
+- pip freeze > requirements.txt
+
+### 3. gitignore 적용
 
 - git rm -r --cached .
 - git add .
 - git commit -m "Apply .gitignore"
+
