@@ -146,6 +146,7 @@ def requests_retry_session(retries=5, backoff_factor=0.3, status_forcelist=(500,
 
 def _call_public_api(url, **kwargs):
     try:
+        time.sleep(0.05)
         resp = requests_retry_session().get(url, params=kwargs)
         contents = resp.json()
         return contents

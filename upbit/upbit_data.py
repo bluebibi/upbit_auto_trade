@@ -18,4 +18,5 @@ class Upbit_Data:
         print(df)
 
 if __name__ == "__main__":
-    upbit_data = Upbit_Data
+    upbit_data = Upbit_Data('BTC')
+    upbit_data.get_data()
