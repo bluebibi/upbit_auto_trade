@@ -14,10 +14,13 @@ class Upbit_Recorder:
         self.coin_names = self.upbit.get_all_coin_names()
 
     def record(self, coin_name):
+        i = self.upbit.get_market_index()
+
         ticker = "KRW-" + coin_name
         r = self.upbit.get_ohlcv(ticker, interval="minute10").values
 
         new_records = 0
+
         for row in r:
             datetime = row[0].replace('T', ' ')
             open_price = row[1]
@@ -28,7 +31,6 @@ class Upbit_Recorder:
 
             if not self.exist_row_by_datetime(coin_name, datetime):
                 o = self.upbit.get_orderbook(tickers=ticker)
-                i = self.upbit.get_market_index()
 
                 self.cursor = self.sql_handler.conn.cursor()
 
