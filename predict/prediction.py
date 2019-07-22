@@ -94,7 +94,7 @@ if __name__ == "__main__":
 
         early_stopping = EarlyStopping(coin_name=coin_name, patience=patience, verbose=True)
 
-        upbit_data = Upbit_Data('BTC', train_cols)
+        upbit_data = Upbit_Data(coin_name, train_cols)
         x_train, x_train_normalized, y_train, y_train_normalized, y_up_train, one_rate_train, train_size, \
         x_valid, x_valid_normalized, y_valid, y_valid_normalized, y_up_valid, one_rate_valid, valid_size = upbit_data.get_data(
             coin_name=coin_name,
@@ -104,7 +104,7 @@ if __name__ == "__main__":
             cnn=True
         )
 
-        for epoch in range(NUM_EPOCHS):
+        for epoch in range(1, NUM_EPOCHS + 1):
             train_data_loader = get_data_loader(
                 x_train, x_train_normalized, y_train, y_train_normalized, y_up_train, batch_size=batch_size, suffle=True
             )
@@ -156,22 +156,26 @@ if __name__ == "__main__":
             valid_loss = np.average(valid_losses)
             avg_valid_losses.append(valid_loss)
 
-            print_msg = "{0} - Epoch[{1}/{2}] train_loss:{3:.6f}, train_accuracy:{4:.2f}, valid_loss:{5:.6f}, valid_accuracy:{6:.2f}".format(
-                coin_name,
-                epoch,
-                NUM_EPOCHS,
-                train_loss,
-                train_accuracy,
-                valid_loss,
-                valid_accuracy
-            )
-            print(print_msg)
+            if epoch % 10 == 0:
+                print_msg = "{0} - Epoch[{1}/{2}] train_loss:{3:.6f}, train_accuracy:{4:.2f}, valid_loss:{5:.6f}, valid_accuracy:{6:.2f}".format(
+                    coin_name,
+                    epoch,
+                    NUM_EPOCHS,
+                    train_loss,
+                    train_accuracy,
+                    valid_loss,
+                    valid_accuracy
+                )
+                print(print_msg)
 
             early_stopping(valid_loss, epoch, model, valid_size, one_rate_valid)
 
             if early_stopping.early_stop:
                 print("Early stopping @ Epoch {0}: Last Save Epoch {1}".format(epoch, early_stopping.last_save_epoch))
                 break
+
+        if epoch == NUM_EPOCHS:
+            print("Normal Stopping @ Epoch {0}: Last Save Epoch {1}".format(epoch, early_stopping.last_save_epoch))
 
         save_graph(
             coin_name,
