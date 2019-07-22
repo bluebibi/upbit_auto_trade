@@ -117,3 +117,4 @@ temp/data/MNIST/raw/train-images-idx3-ubyte
 temp/data/MNIST/raw/train-labels-idx1-ubyte
 
 scripts/upbit_record_mac.sh
+*.png

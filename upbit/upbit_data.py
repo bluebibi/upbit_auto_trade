@@ -18,7 +18,7 @@ class Upbit_Data:
         self.coin_name = coin_name
         self.train_cols = train_cols
 
-    def get_data(self, windows_size=10, future_target=6, up_rate=0.05, cnn=False):
+    def get_data(self, coin_name, windows_size=10, future_target=6, up_rate=0.05, cnn=False):
         self.cursor = self.sql_handler.conn.cursor()
         df = pd.read_sql_query(select_by_datetime.format("KRW_" + self.coin_name), self.sql_handler.conn)
         df = df.drop(["id", "datetime"], axis=1)
@@ -35,7 +35,7 @@ class Upbit_Data:
         x_train_normalized = torch.from_numpy(x_train_normalized).to(device)
         x_test_normalized = torch.from_numpy(x_test_normalized).to(device)
 
-        x_train, x_train_normalized, y_train, y_train_normalized, y_up_train = self.build_timeseries(
+        x_train, x_train_normalized, y_train, y_train_normalized, y_up_train, one_rate_train = self.build_timeseries(
             data=x_train_raw,
             data_normalized=x_train_normalized,
             window_size=windows_size,
@@ -43,7 +43,7 @@ class Upbit_Data:
             up_rate=up_rate
         )
 
-        x_test, x_test_normalized, y_test, y_test_normalized, y_up_test = self.build_timeseries(
+        x_test, x_test_normalized, y_test, y_test_normalized, y_up_test, one_rate_test = self.build_timeseries(
             data=x_test_raw,
             data_normalized=x_test_normalized,
             window_size=windows_size,
@@ -51,14 +51,23 @@ class Upbit_Data:
             up_rate=up_rate
         )
 
-        print("Train Size: {0}, Test Size: {1}".format(x_train.size(0), x_test.size(0)))
+        train_size = x_train.size(0)
+        test_size = x_test.size(0)
+
+        print("[{0}] Train Size: {1}[{2:.4f}], Test Size: {3}[{4:.4f}]".format(
+            coin_name,
+            train_size,
+            one_rate_train,
+            test_size,
+            one_rate_test
+        ))
 
         if cnn:
-            return x_train.unsqueeze(dim=1), x_train_normalized.unsqueeze(dim=1), y_train, y_train_normalized, y_up_train, \
-                   x_test.unsqueeze(dim=1), x_test_normalized.unsqueeze(dim=1), y_test, y_test_normalized, y_up_test
+            return x_train.unsqueeze(dim=1), x_train_normalized.unsqueeze(dim=1), y_train, y_train_normalized, y_up_train, one_rate_train, train_size,\
+                   x_test.unsqueeze(dim=1), x_test_normalized.unsqueeze(dim=1), y_test, y_test_normalized, y_up_test, one_rate_test, test_size
         else:
-            return x_train, x_train_normalized, y_train, y_train_normalized, y_up_train, \
-                   x_test, x_test_normalized, y_test, y_test_normalized, y_up_test
+            return x_train, x_train_normalized, y_train, y_train_normalized, y_up_train, one_rate_train, train_size,\
+                   x_test, x_test_normalized, y_test, y_test_normalized, y_up_test, one_rate_test, test_size
 
     def build_timeseries(self, data, data_normalized, window_size, future_target, up_rate):
         y_col_index = 3
@@ -77,6 +86,7 @@ class Upbit_Data:
             x[i] = data[i: i + window_size]
             x_normalized[i] = data_normalized[i: i + window_size]
 
+        count_one = 0
         for i in range(dim_0):
             max_price = -1.0
             max_price_normalized = -1.0
@@ -94,8 +104,9 @@ class Upbit_Data:
 
             if y[i] > x[i][-1, y_col_index] * (1 + up_rate):
                 y_up[i] = 1
+                count_one += 1
 
-        return x, x_normalized, y, y_normalized, y_up
+        return x, x_normalized, y, y_normalized, y_up, count_one / dim_0
 
 
 def get_data_loader(x, x_normalized, y, y_normalized, y_up_train, batch_size, suffle=True):
@@ -116,8 +127,8 @@ def get_data_loader(x, x_normalized, y, y_normalized, y_up_train, batch_size, su
 
 if __name__ == "__main__":
     upbit_data = Upbit_Data('BTC')
-    x_train, x_train_normalized, y_train, y_train_normalized, y_up_train, \
-    x_test, x_test_normalized, y_test, y_test_normalized, y_up_test = upbit_data.get_data(
+    x_train, x_train_normalized, y_train, y_train_normalized, y_up_train, one_rate_train, train_size,\
+    x_test, x_test_normalized, y_test, y_test_normalized, y_up_test, one_rate_test, test_size = upbit_data.get_data(
         windows_size=2,
         future_target=16,
         up_rate=0.01

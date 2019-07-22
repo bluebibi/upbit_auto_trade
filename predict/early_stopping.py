@@ -1,4 +1,5 @@
 #https://github.com/Bjarten/early-stopping-pytorch
+import os
 
 import numpy as np
 import torch
@@ -21,27 +22,40 @@ class EarlyStopping:
         self.val_loss_min = np.Inf
         self.coin_name = coin_name
         self.last_save_epoch = -1
+        self.last_filename = None
 
-    def __call__(self, val_loss, epoch, model):
+    def __call__(self, val_loss, epoch, model, valid_size, one_count_rate):
         if epoch > 99:
             if self.val_loss_min is np.Inf:
-                self.val_loss_min = val_loss
-                self.save_checkpoint(val_loss, epoch, model)
+                self.save_checkpoint(val_loss, epoch, model, valid_size, one_count_rate)
             elif val_loss > self.val_loss_min:
                 self.counter += 1
                 print(f'EarlyStopping counter: {self.counter} out of {self.patience} @ Epoch {epoch}')
                 if self.counter >= self.patience:
                     self.early_stop = True
             else:
-                self.val_loss_min = val_loss
-                self.save_checkpoint(val_loss, epoch, model)
+                self.save_checkpoint(val_loss, epoch, model, valid_size, one_count_rate)
                 self.counter = 0
         else:
             pass
 
-    def save_checkpoint(self, val_loss, epoch, model):
+    def save_checkpoint(self, val_loss, epoch, model, valid_size, one_count_rate):
         '''Saves model when validation loss decrease.'''
         if self.verbose:
             print(f'Validation loss decreased ({self.val_loss_min:.6f} --> {val_loss:.6f}).  Saving model @ Epoch {epoch}')
-        torch.save(model.state_dict(), './models/{0}_{1:.4f}_{2}.pt'.format(self.coin_name, val_loss, epoch))
+
+        if self.last_filename:
+            os.remove("./models/" + self.last_filename)
+
+        new_filename = "{0}_{1:.4f}_{2}_{3}_{4:.4f}.pt".format(
+            self.coin_name,
+            val_loss,
+            epoch,
+            valid_size,
+            one_count_rate
+        )
+        torch.save(model.state_dict(), "./models/" + new_filename)
+
+        self.last_filename = new_filename
+        self.val_loss_min = val_loss
         self.last_save_epoch = epoch
