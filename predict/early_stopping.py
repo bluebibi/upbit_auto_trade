@@ -50,7 +50,7 @@ class EarlyStopping:
         if self.last_filename:
             os.remove("./models/" + self.last_filename)
 
-        new_filename = "{0}_{1}_{2:.4f}_{3:.4f}_{4}_{5:.4f}.pt".format(
+        new_filename = "{0}_{1}_{2:.2f}_{3:.2f}_{4}_{5:.2f}.pt".format(
             self.coin_name,
             epoch,
             val_loss,

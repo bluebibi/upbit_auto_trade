@@ -56,7 +56,7 @@ def save_graph(coin_name, val_loss_min, last_val_accuracy, last_save_epoch, vali
     ax_lst[1][1].set_title('VALIDATION ACCURACY CHANGE', fontweight="bold", size=10)
     ax_lst[1][1].set_xlabel('EPISODES', size=10)
 
-    new_filename = "{0}_{1}_{2:.4f}_{3:.4f}_{4}_{5:.4f}.png".format(
+    new_filename = "{0}_{1}_{2:.2f}_{3:.2f}_{4}_{5:.2f}.png".format(
         coin_name,
         last_save_epoch,
         val_loss_min,
@@ -148,7 +148,9 @@ if __name__ == "__main__":
             train_accuracy = 100 * correct / total
             train_accuracy_list.append(train_accuracy)
 
+            #### evaluation
             # 배치정규화나 드롭아웃은 학습할때와 테스트 할때 다르게 동작하기 때문에 모델을 evaluation 모드로 바꿔서 테스트해야합니다.
+
             model.eval()
             correct = 0.0
             total = 0.0
@@ -160,10 +162,9 @@ if __name__ == "__main__":
             y_up_valid = y_up_valid_original.clone().detach()
 
             valid_data_loader = get_data_loader(
-                x_valid, x_valid_normalized, y_valid, y_valid_normalized, y_up_valid, batch_size=batch_size, suffle=True
+                x_valid, x_valid_normalized, y_valid, y_valid_normalized, y_up_valid, batch_size=batch_size, suffle=False
             )
 
-            #### evaluation
             for x_valid, x_valid_normalized, y_valid, y_valid_normalized, y_up_valid, num_batches in valid_data_loader:
                 out = model.forward(x_valid_normalized)
                 _, output_index = torch.max(out, 1)
