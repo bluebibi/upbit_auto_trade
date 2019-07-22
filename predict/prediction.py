@@ -163,7 +163,8 @@ if __name__ == "__main__":
 
                 total += y_up_valid.size(0)
                 correct += (output_index == y_up_valid).sum().float()
-                print(output_index, y_up_valid)
+                print(epoch, output_index, y_up_valid)
+            print()
 
             valid_accuracy = 100 * correct / total
             valid_accuracy_list.append(valid_accuracy)
