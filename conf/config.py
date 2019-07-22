@@ -58,6 +58,14 @@ TELEGRAM_APP_TITLE = config['TELEGRAM']['app_title']
 SLACK_WEBHOOK_URL_1 = config['SLACK']['webhook_url_1']
 SLACK_WEBHOOK_URL_2 = config['SLACK']['webhook_url_2']
 
+#TRAIN
+NUM_EPOCHS = int(config['TRAIN']['num_epochs'])
+
+#DATA
+WINDOW_SIZE = int(config['DATA']['window_size'])
+FUTURE_TARGET_SIZE = int(config['DATA']['future_target_size'])
+UP_RATE = float(config['DATA']['up_rate'])
+
 if __name__ == "__main__":
     print(SLACK_WEBHOOK_URL_1)
 

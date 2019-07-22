@@ -18,7 +18,7 @@ class Upbit_Data:
         self.coin_name = coin_name
         self.train_cols = train_cols
 
-    def get_data(self, coin_name, windows_size=10, future_target=6, up_rate=0.05, cnn=False):
+    def get_data(self, coin_name, windows_size=10, future_target_size=6, up_rate=0.05, cnn=False):
         self.cursor = self.sql_handler.conn.cursor()
         df = pd.read_sql_query(select_by_datetime.format("KRW_" + self.coin_name), self.sql_handler.conn)
         df = df.drop(["id", "datetime"], axis=1)
@@ -39,7 +39,7 @@ class Upbit_Data:
             data=x_train_raw,
             data_normalized=x_train_normalized,
             window_size=windows_size,
-            future_target=future_target,
+            future_target_size=future_target_size,
             up_rate=up_rate
         )
 
@@ -47,7 +47,7 @@ class Upbit_Data:
             data=x_test_raw,
             data_normalized=x_test_normalized,
             window_size=windows_size,
-            future_target=future_target,
+            future_target_size=future_target_size,
             up_rate=up_rate
         )
 
@@ -69,9 +69,9 @@ class Upbit_Data:
             return x_train, x_train_normalized, y_train, y_train_normalized, y_up_train, one_rate_train, train_size,\
                    x_test, x_test_normalized, y_test, y_test_normalized, y_up_test, one_rate_test, test_size
 
-    def build_timeseries(self, data, data_normalized, window_size, future_target, up_rate):
+    def build_timeseries(self, data, data_normalized, window_size, future_target_size, up_rate):
         y_col_index = 3
-        future_target = future_target - 1
+        future_target = future_target_size - 1
 
         dim_0 = data.shape[0] - window_size - future_target
         dim_1 = data.shape[1]

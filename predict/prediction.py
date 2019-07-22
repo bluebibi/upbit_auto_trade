@@ -1,8 +1,11 @@
 # https://github.com/pytorch/ignite/blob/master/examples/notebooks/FashionMNIST.ipynb
+import glob
+
 import torch
 import torch.nn as nn
 
-from conf.config import CLIENT_ID_UPBIT, CLIENT_SECRET_UPBIT
+from conf.config import CLIENT_ID_UPBIT, CLIENT_SECRET_UPBIT, NUM_EPOCHS
+from conf.config import WINDOW_SIZE, FUTURE_TARGET_SIZE, UP_RATE
 from upbit.upbit_api import Upbit
 from upbit.upbit_data import Upbit_Data, get_data_loader
 import matplotlib.pyplot as plt
@@ -18,8 +21,16 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 if not os.path.exists("./models/"):
     os.makedirs("./models/")
 
+files = glob.glob('./models/*')
+for f in files:
+    os.remove(f)
+
 if not os.path.exists("./graphs/"):
     os.makedirs("./graphs/")
+
+files = glob.glob('./graphs/*')
+for f in files:
+    os.remove(f)
 
 
 def save_graph(coin_name, val_loss_min, last_save_epoch, valid_size, one_count_rate, avg_train_losses, train_accuracy_list, avg_valid_losses, valid_accuracy_list):
@@ -28,12 +39,22 @@ def save_graph(coin_name, val_loss_min, last_save_epoch, valid_size, one_count_r
     fig = plt.figure()  # an empty figure with no axes
     fig.suptitle('{0} - Loss and Accuracy'.format(coin_name))  # Add a title so we know which it is
 
-    fig, ax_lst = plt.subplots(4, 1)
+    fig, ax_lst = plt.subplots(2, 2, gridspec_kw={'hspace': 0.35})
+    fig.tight_layout()
 
-    ax_lst[0].plot(range(len(avg_train_losses)), avg_train_losses)
-    ax_lst[1].plot(range(len(train_accuracy_list)), train_accuracy_list)
-    ax_lst[2].plot(range(len(avg_valid_losses)), avg_valid_losses)
-    ax_lst[3].plot(range(len(valid_accuracy_list)), valid_accuracy_list)
+    ax_lst[0][0].plot(range(len(avg_train_losses)), avg_train_losses)
+    ax_lst[0][0].set_title('AVG. TRAIN LOSSES', fontweight="bold", size=10)
+
+    ax_lst[0][1].plot(range(len(train_accuracy_list)), train_accuracy_list)
+    ax_lst[0][1].set_title('TRAIN ACCURACY CHANGE', fontweight="bold", size=10)
+    ax_lst[1][1].set_xlabel('EPISODES', size=10)
+
+    ax_lst[1][0].plot(range(len(avg_valid_losses)), avg_valid_losses)
+    ax_lst[1][0].set_title('AVG. VALIDATION LOSSES', fontweight="bold", size=10)
+
+    ax_lst[1][1].plot(range(len(valid_accuracy_list)), valid_accuracy_list)
+    ax_lst[1][1].set_title('VALIDATION ACCURACY CHANGE', fontweight="bold", size=10)
+    ax_lst[1][1].set_xlabel('EPISODES', size=10)
 
     plt.savefig("./graphs/{0}_{1:.4f}_{2}_{3}_{4:.4f}.png".format(coin_name, val_loss_min, last_save_epoch, valid_size, one_count_rate))
     plt.close('all')
@@ -47,7 +68,6 @@ if __name__ == "__main__":
     input_size = len(train_cols)
     batch_size = 6
     lr = 0.001
-    num_epochs = 500
 
     upbit = Upbit(CLIENT_ID_UPBIT, CLIENT_SECRET_UPBIT)
     coin_names = upbit.get_all_coin_names()
@@ -74,17 +94,17 @@ if __name__ == "__main__":
 
         early_stopping = EarlyStopping(coin_name=coin_name, patience=patience, verbose=True)
 
-        for epoch in range(num_epochs):
-            upbit_data = Upbit_Data('BTC', train_cols)
-            x_train, x_train_normalized, y_train, y_train_normalized, y_up_train, one_rate_train, train_size,\
-            x_valid, x_valid_normalized, y_valid, y_valid_normalized, y_up_valid, one_rate_valid, valid_size = upbit_data.get_data(
-                coin_name=coin_name,
-                windows_size=10,
-                future_target=24,
-                up_rate=0.015,
-                cnn=True
-            )  # 과거 5시간 데이터(10포인트)를 기반으로 현재 기준 향후 12시간(16포인트) 이내 1.5% 상승 예측
+        upbit_data = Upbit_Data('BTC', train_cols)
+        x_train, x_train_normalized, y_train, y_train_normalized, y_up_train, one_rate_train, train_size, \
+        x_valid, x_valid_normalized, y_valid, y_valid_normalized, y_up_valid, one_rate_valid, valid_size = upbit_data.get_data(
+            coin_name=coin_name,
+            windows_size=WINDOW_SIZE,
+            future_target_size=FUTURE_TARGET_SIZE,
+            up_rate=UP_RATE,
+            cnn=True
+        )
 
+        for epoch in range(NUM_EPOCHS):
             train_data_loader = get_data_loader(
                 x_train, x_train_normalized, y_train, y_train_normalized, y_up_train, batch_size=batch_size, suffle=True
             )
@@ -136,9 +156,10 @@ if __name__ == "__main__":
             valid_loss = np.average(valid_losses)
             avg_valid_losses.append(valid_loss)
 
-            print_msg = "Epoch[{0}/{1}] train_loss:{2:.6f}, train_accuracy:{3:.2f}, valid_loss:{4:.6f}, valid_accuracy:{5:.2f}".format(
+            print_msg = "{0} - Epoch[{1}/{2}] train_loss:{3:.6f}, train_accuracy:{4:.2f}, valid_loss:{5:.6f}, valid_accuracy:{6:.2f}".format(
+                coin_name,
                 epoch,
-                num_epochs,
+                NUM_EPOCHS,
                 train_loss,
                 train_accuracy,
                 valid_loss,
@@ -149,10 +170,8 @@ if __name__ == "__main__":
             early_stopping(valid_loss, epoch, model, valid_size, one_rate_valid)
 
             if early_stopping.early_stop:
-                print("Early stopping @ Epoch {0}: Last Save Epoch {1}\n".format(epoch, early_stopping.last_save_epoch))
+                print("Early stopping @ Epoch {0}: Last Save Epoch {1}".format(epoch, early_stopping.last_save_epoch))
                 break
-
-            print()
 
         save_graph(
             coin_name,
@@ -161,3 +180,5 @@ if __name__ == "__main__":
             valid_size, one_rate_valid,
             avg_train_losses, train_accuracy_list, avg_valid_losses, valid_accuracy_list
         )
+
+        print()
