@@ -149,7 +149,7 @@ if __name__ == "__main__":
             early_stopping(valid_loss, epoch, model, valid_size, one_rate_valid)
 
             if early_stopping.early_stop:
-                print("Early stopping @ Epoch {0}: Last Save Epoch {1}".format(epoch, early_stopping.last_save_epoch))
+                print("Early stopping @ Epoch {0}: Last Save Epoch {1}\n".format(epoch, early_stopping.last_save_epoch))
                 break
 
             print()
