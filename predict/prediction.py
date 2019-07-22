@@ -241,4 +241,4 @@ if __name__ == "__main__":
 
     elapsed_time = time.time() - start_time
     elapsed_time_str = time.strftime("%H:%M:%S", time.gmtime(elapsed_time))
-    print("Elapsed Time:", elapsed_time)
+    print("Elapsed Time:", elapsed_time_str)

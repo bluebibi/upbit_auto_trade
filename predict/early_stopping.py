@@ -68,5 +68,5 @@ class EarlyStopping:
 
     def invalidate_model(self):
         file_name = "./models/" + self.last_filename
-        if os.exists(file_name):
+        if os.path.exists(file_name):
             os.remove(file_name)
