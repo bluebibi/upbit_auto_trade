@@ -1,5 +1,6 @@
 # https://github.com/pytorch/ignite/blob/master/examples/notebooks/FashionMNIST.ipynb
 import glob
+import time
 
 import torch
 import torch.nn as nn
@@ -70,6 +71,10 @@ def save_graph(coin_name, val_loss_min, last_val_accuracy, last_save_epoch, vali
 
 
 if __name__ == "__main__":
+    start_time = time.time()
+
+    coin_names_high_quality_models = []
+
     train_cols = ["open_price", "high_price", "low_price", "close_price", "volume", "total_ask_size",
                       "total_bid_size", "btmi", "btmi_rate", "btai", "btai_rate"]
     # train_cols = ["open_price", "high_price", "low_price", "close_price", "volume"]
@@ -214,4 +219,19 @@ if __name__ == "__main__":
             avg_train_losses, train_accuracy_list, avg_valid_losses, valid_accuracy_list
         )
 
+        high_quality_model_condition_list = [
+            early_stopping.last_val_accuracy > 0.7,
+            early_stopping.val_loss_min < 1.0,
+            early_stopping.last_save_epoch > 10
+        ]
+
+        if all(high_quality_model_condition_list):
+            coin_names_high_quality_models.append(coin_name)
+
         print()
+
+    print("####################################################################")
+    print("Coin Name with High Quality Model:", coin_names_high_quality_models)
+
+    elapsed_time = time.time() - start_time
+    time.strftime("%H:%M:%S", time.gmtime(elapsed_time))
