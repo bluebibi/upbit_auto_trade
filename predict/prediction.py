@@ -6,7 +6,7 @@ import torch
 import torch.nn as nn
 
 from conf.config import CLIENT_ID_UPBIT, CLIENT_SECRET_UPBIT, NUM_EPOCHS
-from conf.config import WINDOW_SIZE, FUTURE_TARGET_SIZE, UP_RATE
+from conf.config import WINDOW_SIZE, FUTURE_TARGET_SIZE, UP_RATE, VERBOSE
 from upbit.upbit_api import Upbit
 from upbit.upbit_data import Upbit_Data, get_data_loader
 import matplotlib.pyplot as plt
@@ -86,7 +86,9 @@ if __name__ == "__main__":
     upbit = Upbit(CLIENT_ID_UPBIT, CLIENT_SECRET_UPBIT)
     coin_names = upbit.get_all_coin_names()
 
-    for coin_name in coin_names:
+    for i, coin_name in enumerate(coin_names):
+        print(i + 1, coin_name)
+
         upbit_data = Upbit_Data(coin_name, train_cols)
         x_train_original, x_train_normalized_original, y_train_original, y_train_normalized_original, y_up_train_original, \
         one_rate_train, train_size, \
@@ -96,7 +98,8 @@ if __name__ == "__main__":
             windows_size=WINDOW_SIZE,
             future_target_size=FUTURE_TARGET_SIZE,
             up_rate=UP_RATE,
-            cnn=True
+            cnn=True,
+            verbose=VERBOSE
         )
 
         if one_rate_valid < 0.35:
@@ -121,7 +124,7 @@ if __name__ == "__main__":
 
         patience = 50
 
-        early_stopping = EarlyStopping(coin_name=coin_name, patience=patience, verbose=True)
+        early_stopping = EarlyStopping(coin_name=coin_name, patience=patience, verbose=VERBOSE)
 
         for epoch in range(1, NUM_EPOCHS + 1):
             x_train = x_train_original.clone().detach()
@@ -181,8 +184,8 @@ if __name__ == "__main__":
 
                 total += y_up_valid.size(0)
                 correct += (output_index == y_up_valid).sum().float()
-                print(epoch, output_index, y_up_valid)
-            print()
+                if VERBOSE: print(epoch, output_index, y_up_valid)
+            if VERBOSE: print()
 
             valid_accuracy = 100 * correct / total
             valid_accuracy_list.append(valid_accuracy)
@@ -199,16 +202,16 @@ if __name__ == "__main__":
                 valid_loss,
                 valid_accuracy
             )
-            print(print_msg)
+            if VERBOSE: print(print_msg)
 
             early_stopping(valid_loss, valid_accuracy, epoch, model, valid_size, one_rate_valid)
 
             if early_stopping.early_stop:
-                print("Early stopping @ Epoch {0}: Last Save Epoch {1}".format(epoch, early_stopping.last_save_epoch))
+                if VERBOSE: print("Early stopping @ Epoch {0}: Last Save Epoch {1}".format(epoch, early_stopping.last_save_epoch))
                 break
 
         if epoch == NUM_EPOCHS:
-            print("Normal Stopping @ Epoch {0}: Last Save Epoch {1}".format(epoch, early_stopping.last_save_epoch))
+            if VERBOSE: print("Normal Stopping @ Epoch {0}: Last Save Epoch {1}".format(epoch, early_stopping.last_save_epoch))
 
 
         high_quality_model_condition_list = [
@@ -229,10 +232,11 @@ if __name__ == "__main__":
                 avg_train_losses, train_accuracy_list, avg_valid_losses, valid_accuracy_list
             )
 
-        print()
+            if VERBOSE: print()
 
     print("####################################################################")
     print("Coin Name with High Quality Model:", coin_names_high_quality_models)
 
     elapsed_time = time.time() - start_time
-    time.strftime("%H:%M:%S", time.gmtime(elapsed_time))
+    elapsed_time_str = time.strftime("%H:%M:%S", time.gmtime(elapsed_time))
+    print("Elapsed Time:", elapsed_time)

@@ -18,7 +18,7 @@ class Upbit_Data:
         self.coin_name = coin_name
         self.train_cols = train_cols
 
-    def get_data(self, coin_name, windows_size=10, future_target_size=6, up_rate=0.05, cnn=False):
+    def get_data(self, coin_name, windows_size=10, future_target_size=6, up_rate=0.05, cnn=False, verbose=True):
         self.cursor = self.sql_handler.conn.cursor()
         df = pd.read_sql_query(select_by_datetime.format("KRW_" + self.coin_name), self.sql_handler.conn)
         df = df.drop(["id", "datetime"], axis=1)
@@ -54,13 +54,14 @@ class Upbit_Data:
         train_size = x_train.size(0)
         test_size = x_test.size(0)
 
-        print("[{0}] Train Size: {1}[{2:.4f}], Test Size: {3}[{4:.4f}]".format(
-            coin_name,
-            train_size,
-            one_rate_train,
-            test_size,
-            one_rate_test
-        ))
+        if verbose:
+            print("[{0}] Train Size: {1}[{2:.4f}], Test Size: {3}[{4:.4f}]".format(
+                coin_name,
+                train_size,
+                one_rate_train,
+                test_size,
+                one_rate_test
+            ))
 
         if cnn:
             return x_train.unsqueeze(dim=1), x_train_normalized.unsqueeze(dim=1), y_train, y_train_normalized, y_up_train, one_rate_train, train_size,\

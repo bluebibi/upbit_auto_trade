@@ -66,6 +66,8 @@ WINDOW_SIZE = int(config['DATA']['window_size'])
 FUTURE_TARGET_SIZE = int(config['DATA']['future_target_size'])
 UP_RATE = float(config['DATA']['up_rate'])
 
+VERBOSE = False
+
 if __name__ == "__main__":
     print(SLACK_WEBHOOK_URL_1)
 
