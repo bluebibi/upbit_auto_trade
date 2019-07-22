@@ -65,3 +65,8 @@ class EarlyStopping:
         self.val_loss_min = val_loss
         self.last_save_epoch = epoch
         self.last_val_accuracy = val_accuracy
+
+    def invalidate_model(self):
+        file_name = "./models/" + self.last_filename
+        if os.exists(file_name):
+            os.remove(file_name)

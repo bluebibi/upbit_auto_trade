@@ -90,6 +90,7 @@ if __name__ == "__main__":
         print(i + 1, coin_name)
 
         upbit_data = Upbit_Data(coin_name, train_cols)
+
         x_train_original, x_train_normalized_original, y_train_original, y_train_normalized_original, y_up_train_original, \
         one_rate_train, train_size, \
         x_valid_original, x_valid_normalized_original, y_valid_original, y_valid_normalized_original, y_up_valid_original, \
@@ -213,7 +214,6 @@ if __name__ == "__main__":
         if epoch == NUM_EPOCHS:
             if VERBOSE: print("Normal Stopping @ Epoch {0}: Last Save Epoch {1}".format(epoch, early_stopping.last_save_epoch))
 
-
         high_quality_model_condition_list = [
             early_stopping.last_val_accuracy > 0.7,
             early_stopping.val_loss_min < 1.0,
@@ -233,6 +233,8 @@ if __name__ == "__main__":
             )
 
             if VERBOSE: print()
+        else:
+            early_stopping.invalidate_model()
 
     print("####################################################################")
     print("Coin Name with High Quality Model:", coin_names_high_quality_models)
