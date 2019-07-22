@@ -25,7 +25,7 @@ class EarlyStopping:
         self.last_filename = None
 
     def __call__(self, val_loss, epoch, model, valid_size, one_count_rate):
-        if epoch > 99:
+        if epoch > 0:
             if self.val_loss_min is np.Inf:
                 self.save_checkpoint(val_loss, epoch, model, valid_size, one_count_rate)
             elif val_loss > self.val_loss_min:
