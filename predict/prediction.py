@@ -174,24 +174,23 @@ if __name__ == "__main__":
                 correct += (output_index == y_up_valid).sum().float()
                 print(epoch, output_index, y_up_valid)
             print()
-            
+
             valid_accuracy = 100 * correct / total
             valid_accuracy_list.append(valid_accuracy)
 
             valid_loss = np.average(valid_losses)
             avg_valid_losses.append(valid_loss)
 
-            if epoch % 10 == 0:
-                print_msg = "{0} - Epoch[{1}/{2}] train_loss:{3:.6f}, train_accuracy:{4:.2f}, valid_loss:{5:.6f}, valid_accuracy:{6:.2f}".format(
-                    coin_name,
-                    epoch,
-                    NUM_EPOCHS,
-                    train_loss,
-                    train_accuracy,
-                    valid_loss,
-                    valid_accuracy
-                )
-                print(print_msg)
+            print_msg = "{0} - Epoch[{1}/{2}] train_loss:{3:.6f}, train_accuracy:{4:.2f}, valid_loss:{5:.6f}, valid_accuracy:{6:.2f}".format(
+                coin_name,
+                epoch,
+                NUM_EPOCHS,
+                train_loss,
+                train_accuracy,
+                valid_loss,
+                valid_accuracy
+            )
+            print(print_msg)
 
             early_stopping(valid_loss, valid_accuracy, epoch, model, valid_size, one_rate_valid)
 

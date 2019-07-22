@@ -31,7 +31,7 @@ class EarlyStopping:
                 self.save_checkpoint(val_loss, val_accuracy, epoch, model, valid_size, one_count_rate)
             elif val_loss > self.val_loss_min:
                 self.counter += 1
-                if self.verbose and epoch % 10 == 0:
+                if self.verbose:
                     print(f'EarlyStopping counter: {self.counter} out of {self.patience} @ Epoch {epoch}')
                 if self.counter >= self.patience:
                     self.early_stop = True
