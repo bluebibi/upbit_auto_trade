@@ -95,8 +95,10 @@ if __name__ == "__main__":
         early_stopping = EarlyStopping(coin_name=coin_name, patience=patience, verbose=True)
 
         upbit_data = Upbit_Data(coin_name, train_cols)
-        x_train, x_train_normalized, y_train, y_train_normalized, y_up_train, one_rate_train, train_size, \
-        x_valid, x_valid_normalized, y_valid, y_valid_normalized, y_up_valid, one_rate_valid, valid_size = upbit_data.get_data(
+        x_train_original, x_train_normalized_original, y_train_original, y_train_normalized_original, y_up_train_original, \
+        one_rate_train, train_size, \
+        x_valid_original, x_valid_normalized_original, y_valid_original, y_valid_normalized_original, y_up_valid_original, \
+        one_rate_valid, valid_size = upbit_data.get_data(
             coin_name=coin_name,
             windows_size=WINDOW_SIZE,
             future_target_size=FUTURE_TARGET_SIZE,
@@ -105,6 +107,12 @@ if __name__ == "__main__":
         )
 
         for epoch in range(1, NUM_EPOCHS + 1):
+            x_train = x_train_original.clone().detach()
+            x_train_normalized = x_train_normalized_original.clone().detach()
+            y_train = y_train_original.clone().detach()
+            y_train_normalized = y_train_normalized_original.clone().detach()
+            y_up_train = y_up_train_original.clone().detach()
+
             train_data_loader = get_data_loader(
                 x_train, x_train_normalized, y_train, y_train_normalized, y_up_train, batch_size=batch_size, suffle=True
             )
@@ -136,6 +144,12 @@ if __name__ == "__main__":
             correct = 0.0
             total = 0.0
 
+            x_valid = x_valid_original.clone().detach()
+            x_valid_normalized = x_valid_normalized_original.clone().detach()
+            y_valid = y_valid_original.clone().detach()
+            y_valid_normalized = y_valid_normalized_original.clone().detach()
+            y_up_valid = y_up_valid_original.clone().detach()
+
             valid_data_loader = get_data_loader(
                 x_valid, x_valid_normalized, y_valid, y_valid_normalized, y_up_valid, batch_size=batch_size, suffle=True
             )
@@ -149,6 +163,7 @@ if __name__ == "__main__":
 
                 total += y_up_valid.size(0)
                 correct += (output_index == y_up_valid).sum().float()
+                print(output_index, y_up_valid)
 
             valid_accuracy = 100 * correct / total
             valid_accuracy_list.append(valid_accuracy)
