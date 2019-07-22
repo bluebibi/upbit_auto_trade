@@ -82,6 +82,21 @@ if __name__ == "__main__":
     coin_names = upbit.get_all_coin_names()
 
     for coin_name in coin_names:
+        upbit_data = Upbit_Data(coin_name, train_cols)
+        x_train_original, x_train_normalized_original, y_train_original, y_train_normalized_original, y_up_train_original, \
+        one_rate_train, train_size, \
+        x_valid_original, x_valid_normalized_original, y_valid_original, y_valid_normalized_original, y_up_valid_original, \
+        one_rate_valid, valid_size = upbit_data.get_data(
+            coin_name=coin_name,
+            windows_size=WINDOW_SIZE,
+            future_target_size=FUTURE_TARGET_SIZE,
+            up_rate=UP_RATE,
+            cnn=True
+        )
+
+        if one_rate_valid < 0.35:
+            continue
+
         # hidden_size = 256
         # output_size = 2
         # model = LSTM(input_size, hidden_size, output_size, num_layers=3).to(device)
@@ -102,18 +117,6 @@ if __name__ == "__main__":
         patience = 50
 
         early_stopping = EarlyStopping(coin_name=coin_name, patience=patience, verbose=True)
-
-        upbit_data = Upbit_Data(coin_name, train_cols)
-        x_train_original, x_train_normalized_original, y_train_original, y_train_normalized_original, y_up_train_original, \
-        one_rate_train, train_size, \
-        x_valid_original, x_valid_normalized_original, y_valid_original, y_valid_normalized_original, y_up_valid_original, \
-        one_rate_valid, valid_size = upbit_data.get_data(
-            coin_name=coin_name,
-            windows_size=WINDOW_SIZE,
-            future_target_size=FUTURE_TARGET_SIZE,
-            up_rate=UP_RATE,
-            cnn=True
-        )
 
         for epoch in range(1, NUM_EPOCHS + 1):
             x_train = x_train_original.clone().detach()
