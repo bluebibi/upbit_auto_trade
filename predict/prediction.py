@@ -35,7 +35,7 @@ def save_graph(coin_name, val_loss_min, last_save_epoch, valid_size, one_count_r
     ax_lst[2].plot(range(len(avg_valid_losses)), avg_valid_losses)
     ax_lst[3].plot(range(len(valid_accuracy_list)), valid_accuracy_list)
 
-    plt.savefig("./graphs/{0}_{1}_{2}_{3}_{4:.4f}.png".format(coin_name, val_loss_min, last_save_epoch, valid_size, one_count_rate))
+    plt.savefig("./graphs/{0}_{1:.4f}_{2}_{3}_{4:.4f}.png".format(coin_name, val_loss_min, last_save_epoch, valid_size, one_count_rate))
     plt.close('all')
 
 
