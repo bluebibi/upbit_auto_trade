@@ -73,7 +73,7 @@ if __name__ == "__main__":
     for coin_name in upbit_recorder.coin_names:
         total_new_records += upbit_recorder.record(coin_name)
 
-    msg = "Number of new upbit records: {0}".format(total_new_records)
+    msg = "Number of new upbit records: {0} @ {1}".format(total_new_records, SOURCE)
     slack.send_message("me", msg)
 
 

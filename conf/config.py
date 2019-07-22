@@ -33,7 +33,7 @@ sqlite3_db_filename = os.path.join(BASE_DIR, 'db/upbit_price_info.db')
 order_book_info_filename = os.path.join(BASE_DIR, 'models/order_book_info.pickle')
 
 config = configparser.ConfigParser()
-read_ok = config.read(os.getcwd()[:idx] + "auto_trading/conf/config.ini")
+read_ok = config.read(os.getcwd()[:idx] + "upbit_auto_trade/conf/config.ini")
 
 # USER
 USER_ID = int(config['USER']['user_id'])
@@ -42,6 +42,7 @@ HOST_IP = config['USER']['host_ip']
 SYSTEM_USERNAME = config['USER']['system_username']
 SYSTEM_PASSWORD = config['USER']['system_password']
 EXCHANGE = config['USER']['exchange']
+SOURCE = config['USER']['source']
 
 # UPBIT
 CLIENT_ID_UPBIT = config['UPBIT']['access_key']
