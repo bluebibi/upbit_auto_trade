@@ -33,7 +33,7 @@ for f in files:
     os.remove(f)
 
 
-def save_graph(coin_name, val_loss_min, last_save_epoch, valid_size, one_count_rate, avg_train_losses, train_accuracy_list, avg_valid_losses, valid_accuracy_list):
+def save_graph(coin_name, val_loss_min, last_val_accuracy, last_save_epoch, valid_size, one_count_rate, avg_train_losses, train_accuracy_list, avg_valid_losses, valid_accuracy_list):
     plt.clf()
 
     fig = plt.figure()  # an empty figure with no axes
@@ -56,7 +56,16 @@ def save_graph(coin_name, val_loss_min, last_save_epoch, valid_size, one_count_r
     ax_lst[1][1].set_title('VALIDATION ACCURACY CHANGE', fontweight="bold", size=10)
     ax_lst[1][1].set_xlabel('EPISODES', size=10)
 
-    plt.savefig("./graphs/{0}_{1:.4f}_{2}_{3}_{4:.4f}.png".format(coin_name, val_loss_min, last_save_epoch, valid_size, one_count_rate))
+    new_filename = "{0}_{1}_{2:.4f}_{3:.4f}_{4}_{5:.4f}.png".format(
+        coin_name,
+        last_save_epoch,
+        val_loss_min,
+        last_val_accuracy,
+        valid_size,
+        one_count_rate
+    )
+
+    plt.savefig("./graphs/" + new_filename)
     plt.close('all')
 
 
@@ -165,7 +174,7 @@ if __name__ == "__main__":
                 correct += (output_index == y_up_valid).sum().float()
                 print(epoch, output_index, y_up_valid)
             print()
-
+            
             valid_accuracy = 100 * correct / total
             valid_accuracy_list.append(valid_accuracy)
 
@@ -184,7 +193,7 @@ if __name__ == "__main__":
                 )
                 print(print_msg)
 
-            early_stopping(valid_loss, epoch, model, valid_size, one_rate_valid)
+            early_stopping(valid_loss, valid_accuracy, epoch, model, valid_size, one_rate_valid)
 
             if early_stopping.early_stop:
                 print("Early stopping @ Epoch {0}: Last Save Epoch {1}".format(epoch, early_stopping.last_save_epoch))
@@ -196,6 +205,7 @@ if __name__ == "__main__":
         save_graph(
             coin_name,
             early_stopping.val_loss_min,
+            early_stopping.last_val_accuracy,
             early_stopping.last_save_epoch,
             valid_size, one_rate_valid,
             avg_train_losses, train_accuracy_list, avg_valid_losses, valid_accuracy_list

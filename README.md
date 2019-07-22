@@ -18,9 +18,10 @@
 
 ### 4. Output 설명 
 
-- BTC_0.0944_451_36_0.0000.pt/png
-  - 0.9444: validation_loss
-  - 451: saved epoch
-  - 36: validation data size
-  - 0.0000: rate of one in validation data
+- BTC_3_0.2564_92.8571_42_0.0476.pt/png
+  - 3: saved_epoch
+  - 0.2564: validation_loss_min
+  - 92.8571: validation_accuracy
+  - 42: validation data size
+  - 0.0476: rate of one in validation data
 
