@@ -210,14 +210,6 @@ if __name__ == "__main__":
         if epoch == NUM_EPOCHS:
             print("Normal Stopping @ Epoch {0}: Last Save Epoch {1}".format(epoch, early_stopping.last_save_epoch))
 
-        save_graph(
-            coin_name,
-            early_stopping.val_loss_min,
-            early_stopping.last_val_accuracy,
-            early_stopping.last_save_epoch,
-            valid_size, one_rate_valid,
-            avg_train_losses, train_accuracy_list, avg_valid_losses, valid_accuracy_list
-        )
 
         high_quality_model_condition_list = [
             early_stopping.last_val_accuracy > 0.7,
@@ -227,6 +219,15 @@ if __name__ == "__main__":
 
         if all(high_quality_model_condition_list):
             coin_names_high_quality_models.append(coin_name)
+
+            save_graph(
+                coin_name,
+                early_stopping.val_loss_min,
+                early_stopping.last_val_accuracy,
+                early_stopping.last_save_epoch,
+                valid_size, one_rate_valid,
+                avg_train_losses, train_accuracy_list, avg_valid_losses, valid_accuracy_list
+            )
 
         print()
 
