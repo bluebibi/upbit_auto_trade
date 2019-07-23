@@ -34,7 +34,7 @@ class EarlyStopping:
             elif val_loss > self.val_loss_min:
                 self.counter += 1
                 if self.verbose:
-                    self.logger.info(f'EarlyStopping counter: {self.counter} out of {self.patience} @ Epoch {epoch}')
+                    self.logger.info(f'EarlyStopping counter: {self.counter} out of {self.patience} @ Epoch {epoch}\n')
                 if self.counter >= self.patience:
                     self.early_stop = True
             else:

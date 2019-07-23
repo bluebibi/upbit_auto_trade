@@ -41,9 +41,11 @@ class CNN(nn.Module):
 
         self.fc_layer = nn.Sequential(
             nn.Linear(w * h * 64, 200),
+            nn.LeakyReLU(),
             nn.Dropout2d(0.25),
             nn.Linear(200, 100),
-            nn.Linear(100, 2)
+            nn.LeakyReLU(),
+            nn.Linear(100, 1)
         )
 
         for m in self.modules():
@@ -59,6 +61,6 @@ class CNN(nn.Module):
         out = out.view(x.size(0), -1)
         out = self.fc_layer(out)
         #out = F.log_softmax(out, dim=-1)
-        return out
+        return out.squeeze(dim=1)
 
 

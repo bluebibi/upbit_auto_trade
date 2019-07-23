@@ -4,6 +4,7 @@ from logging.handlers import RotatingFileHandler
 
 PROJECT_HOME = os.getcwd()
 
+
 def get_logger(name):
     """
     Args:
@@ -21,7 +22,6 @@ def get_logger(name):
 
     files = glob.glob(PROJECT_HOME + "/logs/*")
     for f in files:
-        print(f, "!!!")
         if os.path.isfile(f):
             os.remove(f)
 

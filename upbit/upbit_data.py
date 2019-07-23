@@ -71,7 +71,7 @@ class Upbit_Data:
         x_normalized = torch.zeros((dim_0, window_size, dim_1)).to(device)
         y = torch.zeros((dim_0,)).to(device)
         y_normalized = torch.zeros((dim_0,)).to(device)
-        y_up = torch.zeros((dim_0,)).long().to(device)
+        y_up = torch.zeros((dim_0,)).float().to(device)
 
         for i in range(dim_0):
             x[i] = data[i: i + window_size]
@@ -117,12 +117,16 @@ def get_data_loader(x, x_normalized, y, y_normalized, y_up_train, batch_size, su
 
 
 if __name__ == "__main__":
-    upbit_data = Upbit_Data('BTC')
+    upbit_data = Upbit_Data('BTC', TRAIN_COLS)
     x_train, x_train_normalized, y_train, y_train_normalized, y_up_train, one_rate_train, train_size,\
     x_test, x_test_normalized, y_test, y_test_normalized, y_up_test, one_rate_test, test_size = upbit_data.get_data(
-        windows_size=2,
-        future_target=16,
-        up_rate=0.01
+        num=1,
+        coin_name='BTC',
+        windows_size=WINDOW_SIZE,
+        future_target_size=FUTURE_TARGET_SIZE,
+        up_rate=UP_RATE,
+        cnn=True,
+        verbose=VERBOSE
     ) # 과거 3시간 데이터(6포인트)를 기반으로 현재 기준 향후 12시간 이내 2% 상승 예측
 
     print(x_train.shape)

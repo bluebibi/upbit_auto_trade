@@ -80,12 +80,14 @@ def save_graph(coin_name, val_loss_min, last_val_accuracy, last_save_epoch, vali
 def train(optimizer, model, criterion, train_losses, x_train_normalized, y_up_train):
     optimizer.zero_grad()
     out = model.forward(x_train_normalized)
+
     loss = criterion(out, y_up_train)
     loss.backward()
     optimizer.step()
     train_losses.append(loss.item())
 
-    _, output_index = torch.max(out, 1)
+    t = torch.Tensor([0.5])
+    output_index = (out > t).float() * 1
 
     return y_up_train.size(0), (output_index == y_up_train).sum().float()
 
@@ -105,7 +107,8 @@ def validate(epoch, model, criterion, valid_losses, x_valid_normalized, y_up_val
     loss = criterion(out, y_up_valid)
     valid_losses.append(loss.item())
 
-    _, output_index = torch.max(out, 1)
+    t = torch.Tensor([0.5])
+    output_index = (out > t).float() * 1
 
     if VERBOSE: logger.info("{0} {1} {2}".format(epoch, output_index, y_up_valid))
 
@@ -133,7 +136,7 @@ def main():
     global_model = CNN(input_width=INPUT_SIZE, input_height=WINDOW_SIZE).to(device)
 
     global_optimizer = torch.optim.Adam(global_model.parameters(), lr=lr)
-    global_criterion = nn.CrossEntropyLoss()
+    global_criterion = nn.BCEWithLogitsLoss()
 
     global_train_losses = []
     global_valid_losses = []
@@ -189,7 +192,7 @@ def main():
         model = CNN(input_width=INPUT_SIZE, input_height=WINDOW_SIZE).to(device)
 
         optimizer = torch.optim.Adam(model.parameters(), lr=lr)
-        criterion = nn.CrossEntropyLoss()
+        criterion = nn.BCEWithLogitsLoss()
 
         train_losses = []
         valid_losses = []
