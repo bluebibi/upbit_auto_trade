@@ -1,9 +1,8 @@
+import glob
 import logging, os, sys
 from logging.handlers import RotatingFileHandler
 
 PROJECT_HOME = os.getcwd()
-print(PROJECT_HOME)
-
 
 def get_logger(name):
     """
@@ -19,6 +18,12 @@ def get_logger(name):
 
     if not os.path.exists(PROJECT_HOME + "/logs/"):
         os.makedirs(PROJECT_HOME + "/logs/")
+
+    files = glob.glob(PROJECT_HOME + "/logs/*")
+    for f in files:
+        print(f, "!!!")
+        if os.path.isfile(f):
+            os.remove(f)
 
     rotate_handler = RotatingFileHandler(
         PROJECT_HOME + "/logs/" + name + ".log",

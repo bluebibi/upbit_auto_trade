@@ -23,5 +23,5 @@
   - 0.2564: validation_loss_min
   - 92.8571: validation_accuracy
   - 42: validation data size
-  - 0.0476: rate of one in validation data
+  - 0.0476:rate of one in validation data
 

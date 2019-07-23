@@ -2,6 +2,7 @@
 import glob
 import time
 
+import matplotlib
 import torch
 import torch.nn as nn
 
@@ -36,7 +37,8 @@ def reset_files(filename):
 def save_graph(coin_name, val_loss_min, last_val_accuracy, last_save_epoch, valid_size, one_count_rate, avg_train_losses, train_accuracy_list, avg_valid_losses, valid_accuracy_list):
     plt.clf()
 
-    fig = plt.figure()  # an empty figure with no axes
+    fig = matplotlib.pyplot.gcf()  # an empty figure with no axes
+    fig.set_size_inches(11, 8)
     fig.suptitle('{0} - Loss and Accuracy'.format(coin_name))  # Add a title so we know which it is
 
     fig, ax_lst = plt.subplots(2, 2, gridspec_kw={'hspace': 0.35})
@@ -285,7 +287,7 @@ def main():
                 global_valid_losses, global_avg_valid_losses, global_valid_accuracy_list, correct, total
             )
 
-            print_msg = "{0} - Epoch[{1}/{2}] - t_loss:{3:.6f}, t_accuracy:{4:.2f}, v_loss:{5:.6f}, v_accuracy:{6:.2f} ".format(
+            print_msg = "{0} - Epoch[{1}/{2}] - \n  t_loss:{3:.6f},   t_accuracy:{4:.2f},   v_loss:{5:.6f},   v_accuracy:{6:.2f}".format(
                 coin_name,
                 epoch,
                 NUM_EPOCHS,
@@ -295,7 +297,7 @@ def main():
                 valid_accuracy
             )
 
-            print_msg += "g_t_loss:{0:.6f}, g_t_accuracy:{1:.2f}, g_v_loss:{2:.6f}, g_v_accuracy:{3:.2f}".format(
+            print_msg += "\ng_t_loss:{0:.6f}, g_t_accuracy:{1:.2f}, g_v_loss:{2:.6f}, g_v_accuracy:{3:.2f}".format(
                 global_train_loss,
                 global_train_accuracy,
                 global_valid_loss,
@@ -335,21 +337,21 @@ def main():
             early_stopping.save_last_model()
             if VERBOSE: logger.info("\n")
 
-        save_graph(
-            "GLOBAL",
-            None,
-            None,
-            None,
-            global_valid_size, np.average(global_one_rate_valid_list),
-            global_avg_train_losses, global_train_accuracy_list, global_avg_valid_losses, global_valid_accuracy_list
-        )
+    save_graph(
+        "GLOBAL",
+        None,
+        None,
+        None,
+        global_valid_size, np.average(global_one_rate_valid_list),
+        global_avg_train_losses, global_train_accuracy_list, global_avg_valid_losses, global_valid_accuracy_list
+    )
 
-        filename = "./models/global/{0}_{1}_{2:.2f}.pt".format(
-            "GLOBAL",
-            global_valid_size,
-            np.average(global_one_rate_valid_list)
-        )
-        torch.save(global_model.state_dict(), filename)
+    filename = "./models/global/{0}_{1}_{2:.2f}.pt".format(
+        "GLOBAL",
+        global_valid_size,
+        np.average(global_one_rate_valid_list)
+    )
+    torch.save(global_model.state_dict(), filename)
 
     elapsed_time = time.time() - start_time
     elapsed_time_str = time.strftime("%H:%M:%S", time.gmtime(elapsed_time))
@@ -365,4 +367,5 @@ if __name__ == "__main__":
     reset_files("graphs")
     reset_files("models/global")
     reset_files("graphs/global")
+    #reset_files("logs")
     main()
