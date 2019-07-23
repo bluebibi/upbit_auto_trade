@@ -6,7 +6,7 @@ import matplotlib
 import torch
 import torch.nn as nn
 
-from common.config import CLIENT_ID_UPBIT, CLIENT_SECRET_UPBIT, NUM_EPOCHS
+from common.config import CLIENT_ID_UPBIT, CLIENT_SECRET_UPBIT, NUM_EPOCHS, USE_CNN_MODEL
 from common.config import FUTURE_TARGET_SIZE, UP_RATE, VERBOSE, TRAIN_COLS, WINDOW_SIZE, INPUT_SIZE
 from upbit.upbit_api import Upbit
 from upbit.upbit_data import Upbit_Data, get_data_loader
@@ -22,7 +22,6 @@ from common.logger import get_logger
 logger = get_logger("main_prediction")
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-
 
 def reset_files(filename):
     if not os.path.exists("./{0}/".format(filename)):
@@ -133,7 +132,13 @@ def main():
     batch_size = 6
     lr = 0.001
 
-    global_model = CNN(input_width=INPUT_SIZE, input_height=WINDOW_SIZE).to(device)
+    if USE_CNN_MODEL:
+        print("CNN Model Setup")
+        global_model = CNN(input_width=INPUT_SIZE, input_height=WINDOW_SIZE).to(device)
+    else:
+        print("LSTM Model Setup")
+        global_model = LSTM(input_size=INPUT_SIZE).to(device)
+
 
     global_optimizer = torch.optim.Adam(global_model.parameters(), lr=lr)
     global_criterion = nn.BCEWithLogitsLoss()
@@ -167,7 +172,7 @@ def main():
             windows_size=WINDOW_SIZE,
             future_target_size=FUTURE_TARGET_SIZE,
             up_rate=UP_RATE,
-            cnn=True,
+            cnn=USE_CNN_MODEL,
             verbose=VERBOSE
         )
 
@@ -186,10 +191,11 @@ def main():
         global_valid_size += valid_size
         global_one_rate_valid_list.append(one_rate_valid)
 
-        # hidden_size = 256
-        # output_size = 2
-        # model = LSTM(input_size, hidden_size, output_size, num_layers=3).to(device)
-        model = CNN(input_width=INPUT_SIZE, input_height=WINDOW_SIZE).to(device)
+        if USE_CNN_MODEL:
+            model = CNN(input_width=INPUT_SIZE, input_height=WINDOW_SIZE).to(device)
+        else:
+            model = LSTM(input_size=INPUT_SIZE).to(device)
+
 
         optimizer = torch.optim.Adam(model.parameters(), lr=lr)
         criterion = nn.BCEWithLogitsLoss()

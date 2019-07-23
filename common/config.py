@@ -60,6 +60,7 @@ SLACK_WEBHOOK_URL_1 = config['SLACK']['webhook_url_1']
 SLACK_WEBHOOK_URL_2 = config['SLACK']['webhook_url_2']
 
 #TRAIN
+USE_CNN_MODEL = config.getboolean('TRAIN', 'use_cnn_model')
 NUM_EPOCHS = int(config['TRAIN']['num_epochs'])
 
 #DATA

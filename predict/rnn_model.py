@@ -6,7 +6,7 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 
 class LSTM(nn.Module):
-    def __init__(self, input_size, hidden_size, output_size, num_layers=3):
+    def __init__(self, input_size, hidden_size=256, output_size=1, num_layers=3):
         super(LSTM, self).__init__()
         self.input_size = input_size
         self.hidden_size = hidden_size
@@ -15,8 +15,6 @@ class LSTM(nn.Module):
 
         self.rnn = nn.LSTM(self.input_size, self.hidden_size, self.num_layers, bias=True, dropout=0.4, batch_first=True)
         self.fc = nn.Linear(self.hidden_size, self.output_size)
-        self.dropout = nn.Dropout(0.4)
-        self.softmax = nn.Softmax(dim=1)
 
         for m in self.modules():
             if isinstance(m, nn.Linear):
@@ -29,17 +27,14 @@ class LSTM(nn.Module):
                         init.kaiming_normal_(params.data)
                     if "bias" in name:
                         params.data.fill_(0)
-        print("param initialized!!!")
 
     def forward(self, x):
         hidden, cell = self.init_hidden(x)
 
-        out, (hidden, cell) = self.rnn(x, (hidden, cell))
+        out, _ = self.rnn(x, (hidden, cell))
         out = self.fc(out[:, -1, :])
-        #print(out.size())
-        out = self.softmax(out)
 
-        return out
+        return out.squeeze(dim=1)
 
     def init_hidden(self, x):
         hidden = torch.zeros(self.num_layers, x.size(0), self.hidden_size).to(device)
