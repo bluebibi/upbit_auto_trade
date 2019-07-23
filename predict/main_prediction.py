@@ -38,7 +38,7 @@ def save_graph(coin_name, val_loss_min, last_val_accuracy, last_save_epoch, vali
     plt.clf()
 
     fig = matplotlib.pyplot.gcf()  # an empty figure with no axes
-    fig.set_size_inches(11, 8)
+    fig.set_size_inches(20, 10)
     fig.suptitle('{0} - Loss and Accuracy'.format(coin_name))  # Add a title so we know which it is
 
     fig, ax_lst = plt.subplots(2, 2, gridspec_kw={'hspace': 0.35})
