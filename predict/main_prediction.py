@@ -316,7 +316,8 @@ def main():
         high_quality_model_condition_list = [
             early_stopping.last_val_accuracy > 0.7,
             early_stopping.val_loss_min < 1.0,
-            early_stopping.last_save_epoch > 10
+            early_stopping.last_save_epoch > 10,
+            one_rate_valid > 0.35
         ]
 
         if all(high_quality_model_condition_list):
