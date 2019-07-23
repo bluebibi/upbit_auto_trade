@@ -80,6 +80,7 @@ def train(optimizer, model, criterion, train_losses, x_train_normalized, y_up_tr
     optimizer.step()
     train_losses.append(loss.item())
 
+    out = torch.sigmoid(out)
     t = torch.Tensor([0.5])
     output_index = (out > t).float() * 1
 
@@ -101,6 +102,7 @@ def validate(epoch, model, criterion, valid_losses, x_valid_normalized, y_up_val
     loss = criterion(out, y_up_valid)
     valid_losses.append(loss.item())
 
+    out = torch.sigmoid(out)
     t = torch.Tensor([0.5])
     output_index = (out > t).float() * 1
 
@@ -204,6 +206,7 @@ def main():
 
         early_stopping = EarlyStopping(coin_name=coin_name, patience=patience, verbose=VERBOSE, logger=logger)
 
+        early_stopped = False
         for epoch in range(1, NUM_EPOCHS + 1):
             x_train = x_train_original.clone().detach()
             x_train_normalized = x_train_normalized_original.clone().detach()
@@ -311,11 +314,12 @@ def main():
             early_stopping(valid_loss, valid_accuracy, epoch, model, valid_size, one_rate_valid)
 
             if early_stopping.early_stop:
+                early_stopped = True
                 if VERBOSE: logger.info("Early stopping @ Epoch {0}: Last Save Epoch {1}".format(epoch, early_stopping.last_save_epoch))
                 break
 
-        if epoch == NUM_EPOCHS and VERBOSE:
-            logger.info("Normal Stopping @ Epoch {0}: Last Save Epoch {1}".format(epoch, early_stopping.last_save_epoch))
+        if (not early_stopped) and VERBOSE:
+            logger.info("Normal Stopping @ Epoch {0}: Last Save Epoch {1}".format(NUM_EPOCHS, early_stopping.last_save_epoch))
 
         high_quality_model_condition_list = [
             early_stopping.last_val_accuracy > 0.65,
