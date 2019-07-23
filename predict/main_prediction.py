@@ -183,7 +183,7 @@ def main():
                 one_rate_valid
             )
             logger.info(msg)
-            print(msg)
+            print(msg, end=" - ")
 
         global_valid_size += valid_size
         global_one_rate_valid_list.append(one_rate_valid)
@@ -326,6 +326,14 @@ def main():
             early_stopping.last_save_epoch > 10,
             one_rate_valid > 0.35
         ]
+
+        msg = "Last Save Epoch: {0:3d} - Min of Valid Loss: {1:.4f}, Last Valid Accuracy:{2:.4f} - {3}".format(
+            early_stopping.last_save_epoch,
+            early_stopping.val_loss_min,
+            early_stopping.last_val_accuracy,
+            all(high_quality_model_condition_list)
+        )
+        print(msg)
 
         if all(high_quality_model_condition_list):
             coin_names_high_quality_models.append(coin_name)
