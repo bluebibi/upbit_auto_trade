@@ -1,4 +1,4 @@
-from conf.config import *
+from common.config import *
 from db.sqlite_handler import SqliteHandler
 from upbit.slack import PushSlack
 from upbit.upbit_api import Upbit

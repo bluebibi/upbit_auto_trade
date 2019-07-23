@@ -1,4 +1,4 @@
-from conf.config import *
+from common.config import *
 import json
 import requests
 

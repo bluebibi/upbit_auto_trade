@@ -7,7 +7,7 @@ import torch
 
 class EarlyStopping:
     """Early stops the training if validation loss doesn't improve after a given patience."""
-    def __init__(self, coin_name, patience=7, verbose=False):
+    def __init__(self, coin_name, patience=7, verbose=False, logger=None):
         """
         Args:
             patience (int): How long to wait after last time validation loss improved.
@@ -24,6 +24,8 @@ class EarlyStopping:
         self.last_save_epoch = -1
         self.last_filename = None
         self.last_val_accuracy = -1
+        self.last_state_dict = None
+        self.logger = logger
 
     def __call__(self, val_loss, val_accuracy, epoch, model, valid_size, one_count_rate):
         if epoch > 0:
@@ -32,7 +34,7 @@ class EarlyStopping:
             elif val_loss > self.val_loss_min:
                 self.counter += 1
                 if self.verbose:
-                    print(f'EarlyStopping counter: {self.counter} out of {self.patience} @ Epoch {epoch}')
+                    self.logger.info(f'EarlyStopping counter: {self.counter} out of {self.patience} @ Epoch {epoch}')
                 if self.counter >= self.patience:
                     self.early_stop = True
             else:
@@ -44,11 +46,8 @@ class EarlyStopping:
     def save_checkpoint(self, val_loss, val_accuracy, epoch, model, valid_size, one_count_rate):
         '''Saves model when validation loss decrease.'''
         if self.verbose:
-            print(f'{self.coin_name}: Saving Model @ Epoch {epoch} - Validation Loss Decreased '
-                  f'({self.val_loss_min:.6f} --> {val_loss:.6f}) - Validation Accuracy {val_accuracy:.6f}', end="\n\n")
-
-        if self.last_filename:
-            os.remove("./models/" + self.last_filename)
+            self.logger.info(f'{self.coin_name}: Saving Model @ Epoch {epoch} - Validation Loss Decreased '
+                             f'({self.val_loss_min:.6f} --> {val_loss:.6f}) - Validation Accuracy {val_accuracy:.6f}\n')
 
         new_filename = "{0}_{1}_{2:.2f}_{3:.2f}_{4}_{5:.2f}.pt".format(
             self.coin_name,
@@ -59,14 +58,13 @@ class EarlyStopping:
             one_count_rate
         )
 
-        torch.save(model.state_dict(), "./models/" + new_filename)
+        self.last_state_dict = model.state_dict()
 
         self.last_filename = new_filename
         self.val_loss_min = val_loss
         self.last_save_epoch = epoch
         self.last_val_accuracy = val_accuracy
 
-    def invalidate_model(self):
+    def save_last_model(self):
         file_name = "./models/" + self.last_filename
-        if os.path.exists(file_name):
-            os.remove(file_name)
+        torch.save(self.last_state_dict, file_name)

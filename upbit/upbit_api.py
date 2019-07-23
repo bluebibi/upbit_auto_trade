@@ -2,7 +2,7 @@ import time
 import jwt
 from urllib.parse import urlencode
 import re
-from conf.config import *
+from common.config import *
 import pprint
 import requests
 from requests.adapters import HTTPAdapter

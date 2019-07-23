@@ -1,6 +1,6 @@
 import unittest
 import numpy as np
-from conf.config import *
+from common.config import *
 from upbit.upbit_api import Upbit
 import pprint
 

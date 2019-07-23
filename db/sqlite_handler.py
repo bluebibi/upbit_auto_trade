@@ -1,6 +1,6 @@
 import sqlite3
 
-from conf.config import CLIENT_ID_UPBIT, CLIENT_SECRET_UPBIT, sqlite3_db_filename
+from common.config import CLIENT_ID_UPBIT, CLIENT_SECRET_UPBIT, sqlite3_db_filename
 from upbit.upbit_api import Upbit
 
 

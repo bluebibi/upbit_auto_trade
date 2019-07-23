@@ -2,6 +2,7 @@ import os
 from enum import Enum
 import configparser
 
+
 class CoinStatus(Enum):
     null = -1
     predicted = 0
@@ -33,7 +34,7 @@ sqlite3_db_filename = os.path.join(BASE_DIR, 'db/upbit_price_info.db')
 order_book_info_filename = os.path.join(BASE_DIR, 'models/order_book_info.pickle')
 
 config = configparser.ConfigParser()
-read_ok = config.read(os.getcwd()[:idx] + "upbit_auto_trade/conf/config.ini")
+read_ok = config.read(os.getcwd()[:idx] + "upbit_auto_trade/common/config.ini")
 
 # USER
 USER_ID = int(config['USER']['user_id'])
@@ -65,8 +66,12 @@ NUM_EPOCHS = int(config['TRAIN']['num_epochs'])
 WINDOW_SIZE = int(config['DATA']['window_size'])
 FUTURE_TARGET_SIZE = int(config['DATA']['future_target_size'])
 UP_RATE = float(config['DATA']['up_rate'])
+TRAIN_COLS = ["open_price", "high_price", "low_price", "close_price", "volume", "total_ask_size",
+              "total_bid_size", "btmi", "btmi_rate", "btai", "btai_rate"]
+#TRAIN_COLS = ["open_price", "high_price", "low_price", "close_price", "volume"]
+INPUT_SIZE = len(TRAIN_COLS)
 
-VERBOSE = False
+VERBOSE = True
 
 if __name__ == "__main__":
     print(SLACK_WEBHOOK_URL_1)
