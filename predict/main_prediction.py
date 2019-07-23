@@ -23,6 +23,7 @@ logger = get_logger("main_prediction")
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
+
 def reset_files(filename):
     if not os.path.exists("./{0}/".format(filename)):
         os.makedirs("./{0}/".format(filename))
@@ -36,18 +37,15 @@ def reset_files(filename):
 def save_graph(coin_name, val_loss_min, last_val_accuracy, last_save_epoch, valid_size, one_count_rate, avg_train_losses, train_accuracy_list, avg_valid_losses, valid_accuracy_list):
     plt.clf()
 
-    fig = matplotlib.pyplot.gcf()  # an empty figure with no axes
-    fig.set_size_inches(20, 10)
-    fig.suptitle('{0} - Loss and Accuracy'.format(coin_name))  # Add a title so we know which it is
-
-    fig, ax_lst = plt.subplots(2, 2, gridspec_kw={'hspace': 0.35})
+    fig, ax_lst = plt.subplots(2, 2, figsize=(30, 10), gridspec_kw={'hspace': 0.35})
+    #fig.suptitle('{0} - Loss and Accuracy'.format(coin_name))  # Add a title so we know which it is
 
     ax_lst[0][0].plot(range(len(avg_train_losses)), avg_train_losses)
     ax_lst[0][0].set_title('AVG. TRAIN LOSSES', fontweight="bold", size=10)
 
     ax_lst[0][1].plot(range(len(train_accuracy_list)), train_accuracy_list)
     ax_lst[0][1].set_title('TRAIN ACCURACY CHANGE', fontweight="bold", size=10)
-    ax_lst[1][1].set_xlabel('EPISODES', size=10)
+    ax_lst[0][1].set_xlabel('EPISODES', size=10)
 
     ax_lst[1][0].plot(range(len(avg_valid_losses)), avg_valid_losses)
     ax_lst[1][0].set_title('AVG. VALIDATION LOSSES', fontweight="bold", size=10)
@@ -139,7 +137,6 @@ def main():
         print("LSTM Model Setup")
         global_model = LSTM(input_size=INPUT_SIZE).to(device)
 
-
     global_optimizer = torch.optim.Adam(global_model.parameters(), lr=lr)
     global_criterion = nn.BCEWithLogitsLoss()
 
@@ -195,7 +192,6 @@ def main():
             model = CNN(input_width=INPUT_SIZE, input_height=WINDOW_SIZE).to(device)
         else:
             model = LSTM(input_size=INPUT_SIZE).to(device)
-
 
         optimizer = torch.optim.Adam(model.parameters(), lr=lr)
         criterion = nn.BCEWithLogitsLoss()
@@ -376,5 +372,4 @@ if __name__ == "__main__":
     reset_files("graphs")
     reset_files("models/global")
     reset_files("graphs/global")
-    #reset_files("logs")
     main()
