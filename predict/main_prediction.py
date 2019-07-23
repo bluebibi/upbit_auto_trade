@@ -1,8 +1,6 @@
 # https://github.com/pytorch/ignite/blob/master/examples/notebooks/FashionMNIST.ipynb
 import glob
 import time
-
-import matplotlib
 import torch
 import torch.nn as nn
 
@@ -12,8 +10,8 @@ from upbit.upbit_api import Upbit
 from upbit.upbit_data import Upbit_Data, get_data_loader
 import matplotlib.pyplot as plt
 
-from predict.rnn_model import LSTM
-from predict.cnn_model import CNN
+from predict.model_rnn import LSTM
+from predict.model_cnn import CNN
 from predict.early_stopping import EarlyStopping
 import numpy as np
 import os
@@ -38,7 +36,6 @@ def save_graph(coin_name, val_loss_min, last_val_accuracy, last_save_epoch, vali
     plt.clf()
 
     fig, ax_lst = plt.subplots(2, 2, figsize=(30, 10), gridspec_kw={'hspace': 0.35})
-    #fig.suptitle('{0} - Loss and Accuracy'.format(coin_name))  # Add a title so we know which it is
 
     ax_lst[0][0].plot(range(len(avg_train_losses)), avg_train_losses)
     ax_lst[0][0].set_title('AVG. TRAIN LOSSES', fontweight="bold", size=10)

@@ -1,6 +1,4 @@
 #https://github.com/Bjarten/early-stopping-pytorch
-import os
-
 import numpy as np
 import torch
 
