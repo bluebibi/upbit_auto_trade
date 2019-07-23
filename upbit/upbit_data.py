@@ -3,13 +3,13 @@ from db.sqlite_handler import SqliteHandler
 from upbit.upbit_api import Upbit
 import pandas as pd
 from sklearn.preprocessing import MinMaxScaler
-from sklearn.model_selection import train_test_split
 import numpy as np
 import torch
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 select_by_datetime = "SELECT * FROM {0};"
+
 
 class Upbit_Data:
     def __init__(self, coin_name, train_cols):
@@ -22,43 +22,53 @@ class Upbit_Data:
         df = pd.read_sql_query(select_by_datetime.format("KRW_" + self.coin_name), self.sql_handler.conn)
         df = df.drop(["id", "datetime"], axis=1)
 
-        df_train, df_test = train_test_split(df, train_size=0.8, test_size=0.2, shuffle=False)
-
-        x_train_raw = torch.from_numpy(df_train.loc[:, self.train_cols].values).to(device)
-        x_test_raw = torch.from_numpy(df_test.loc[:, self.train_cols].values).to(device)
+        data = torch.from_numpy(df.values).to(device)
 
         min_max_scaler = MinMaxScaler()
-        x_train_normalized = min_max_scaler.fit_transform(x_train_raw)
-        x_test_normalized = min_max_scaler.transform(x_test_raw)
+        data_normalized = min_max_scaler.fit_transform(data)
+        data_normalized = torch.from_numpy(data_normalized).to(device)
 
-        x_train_normalized = torch.from_numpy(x_train_normalized).to(device)
-        x_test_normalized = torch.from_numpy(x_test_normalized).to(device)
-
-        x_train, x_train_normalized, y_train, y_train_normalized, y_up_train, one_rate_train = self.build_timeseries(
-            data=x_train_raw,
-            data_normalized=x_train_normalized,
+        x, x_normalized, y, y_normalized, y_up, one_rate, total_size = self.build_timeseries(
+            data=data,
+            data_normalized=data_normalized,
             window_size=windows_size,
             future_target_size=future_target_size,
             up_rate=up_rate
         )
 
-        x_test, x_test_normalized, y_test, y_test_normalized, y_up_test, one_rate_test = self.build_timeseries(
-            data=x_test_raw,
-            data_normalized=x_test_normalized,
-            window_size=windows_size,
-            future_target_size=future_target_size,
-            up_rate=up_rate
-        )
+        indices = list(range(total_size))
+        np.random.shuffle(indices)
+
+        train_indices = list(set(indices[:int(total_size * 0.8)]))
+        validation_indices = list(set(range(total_size)) - set(train_indices))
+
+        x_train = x[train_indices]
+        x_train_normalized = x_normalized[train_indices]
+
+        x_valid = x[validation_indices]
+        x_valid_normalized = x_normalized[validation_indices]
+
+        y_train = y[train_indices]
+        y_train_normalized = y_normalized[train_indices]
+
+        y_valid = y[validation_indices]
+        y_valid_normalized = y_normalized[validation_indices]
+
+        y_up_train = y_up[train_indices]
+        y_up_valid = y_up[validation_indices]
+
+        one_rate_train = y_up_train.sum().float() / y_up_train.size(0)
+        one_rate_valid = y_up_valid.sum().float() / y_up_valid.size(0)
 
         train_size = x_train.size(0)
-        test_size = x_test.size(0)
+        valid_size = x_valid.size(0)
 
         if cnn:
             return x_train.unsqueeze(dim=1), x_train_normalized.unsqueeze(dim=1), y_train, y_train_normalized, y_up_train, one_rate_train, train_size,\
-                   x_test.unsqueeze(dim=1), x_test_normalized.unsqueeze(dim=1), y_test, y_test_normalized, y_up_test, one_rate_test, test_size
+                   x_valid.unsqueeze(dim=1), x_valid_normalized.unsqueeze(dim=1), y_valid, y_valid_normalized, y_up_valid, one_rate_valid, valid_size
         else:
             return x_train, x_train_normalized, y_train, y_train_normalized, y_up_train, one_rate_train, train_size,\
-                   x_test, x_test_normalized, y_test, y_test_normalized, y_up_test, one_rate_test, test_size
+                   x_valid, x_valid_normalized, y_valid, y_valid_normalized, y_up_valid, one_rate_valid, valid_size
 
     def build_timeseries(self, data, data_normalized, window_size, future_target_size, up_rate):
         y_col_index = 3
@@ -97,7 +107,7 @@ class Upbit_Data:
                 y_up[i] = 1
                 count_one += 1
 
-        return x, x_normalized, y, y_normalized, y_up, count_one / dim_0
+        return x, x_normalized, y, y_normalized, y_up, count_one / dim_0, dim_0
 
 
 def get_data_loader(x, x_normalized, y, y_normalized, y_up_train, batch_size, suffle=True):
@@ -118,6 +128,7 @@ def get_data_loader(x, x_normalized, y, y_normalized, y_up_train, batch_size, su
 
 if __name__ == "__main__":
     upbit_data = Upbit_Data('BTC', TRAIN_COLS)
+
     x_train, x_train_normalized, y_train, y_train_normalized, y_up_train, one_rate_train, train_size,\
     x_test, x_test_normalized, y_test, y_test_normalized, y_up_test, one_rate_test, test_size = upbit_data.get_data(
         num=1,
