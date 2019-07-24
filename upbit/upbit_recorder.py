@@ -13,6 +13,8 @@ class Upbit_Recorder:
     def record(self, coin_name):
         i = UPBIT.get_market_index()
 
+        time.sleep(0.01)
+
         ticker = "KRW-" + coin_name
         r = UPBIT.get_ohlcv(ticker, interval="minute10").values
 
@@ -47,6 +49,9 @@ class Upbit_Recorder:
                 ))
                 SQL_HANDLER.conn.commit()
                 new_records += 1
+
+                time.sleep(0.01)
+
         return new_records
 
     def exist_row_by_datetime(self, coin_name, datetime):

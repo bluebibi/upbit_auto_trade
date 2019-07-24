@@ -27,7 +27,7 @@ def reset_files(filename):
             os.remove(f)
 
 
-def save_graph(coin_name, val_loss_min, last_val_accuracy, last_save_epoch, valid_size, one_count_rate, avg_train_losses, train_accuracy_list, avg_valid_losses, valid_accuracy_list):
+def save_graph(coin_name, valid_loss_min, last_valid_accuracy, last_save_epoch, valid_size, one_count_rate, avg_train_losses, train_accuracy_list, avg_valid_losses, valid_accuracy_list):
     plt.clf()
 
     fig, ax_lst = plt.subplots(2, 2, figsize=(30, 10), gridspec_kw={'hspace': 0.35})
@@ -56,8 +56,8 @@ def save_graph(coin_name, val_loss_min, last_val_accuracy, last_save_epoch, vali
         filename = "./graphs/{0}_{1}_{2:.2f}_{3:.2f}_{4}_{5:.2f}.png".format(
             coin_name,
             last_save_epoch,
-            val_loss_min,
-            last_val_accuracy,
+            valid_loss_min,
+            last_valid_accuracy,
             valid_size,
             one_count_rate
         )
@@ -101,7 +101,7 @@ def validate(epoch, model, criterion, valid_losses, x_valid_normalized, y_up_val
     t = torch.Tensor([0.5])
     output_index = (out > t).float() * 1
 
-    if VERBOSE: logger.info("{0} {1} {2}".format(epoch, output_index, y_up_valid))
+    if VERBOSE: logger.info("{0}: Predict - {1}, Y - {2}".format(epoch, output_index, y_up_valid))
 
     return y_up_valid.size(0), (output_index == y_up_valid).sum().float()
 
@@ -318,16 +318,16 @@ def main():
             logger.info("Normal Stopping @ Epoch {0}: Last Save Epoch {1}".format(NUM_EPOCHS, early_stopping.last_save_epoch))
 
         high_quality_model_condition_list = [
-            early_stopping.val_loss_min < 1.0,
-            early_stopping.last_val_accuracy > 75.0,
+            early_stopping.valid_loss_min < 1.0,
+            early_stopping.last_valid_accuracy > 75.0,
             early_stopping.last_save_epoch > 10,
             one_rate_valid > 0.25
         ]
 
         msg = "Last Save Epoch: {0:3d} - Min of Valid Loss: {1:.4f}, Last Valid Accuracy:{2:.4f} - {3}".format(
             early_stopping.last_save_epoch,
-            early_stopping.val_loss_min,
-            early_stopping.last_val_accuracy,
+            early_stopping.valid_loss_min,
+            early_stopping.last_valid_accuracy,
             all(high_quality_model_condition_list)
         )
         print(msg)
@@ -337,8 +337,8 @@ def main():
 
             save_graph(
                 coin_name,
-                early_stopping.val_loss_min,
-                early_stopping.last_val_accuracy,
+                early_stopping.valid_loss_min,
+                early_stopping.last_valid_accuracy,
                 early_stopping.last_save_epoch,
                 valid_size, one_rate_valid,
                 avg_train_losses, train_accuracy_list, avg_valid_losses, valid_accuracy_list

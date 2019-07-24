@@ -66,11 +66,11 @@ def main():
 
     for coin_name in right_time_coin_names:
         if coin_name in good_models:
-            print(coin_name, right_time_coin_names[coin_name])
+            print("{0:5s} - {1} - {2}".format(coin_name, right_time_coin_names[coin_name], "GOOD MODEL EXIST!!!"))
             evaluate_coin_by_models(good_models[coin_name], coin_name)
+        else:
+            print("{0:5s} - {1} - {2}".format(coin_name, right_time_coin_names[coin_name], "NO GOOD MODEL YET"))
 
 
 if __name__ == "__main__":
-    upbit_data = UpbitData("DASH")
-    x = upbit_data.get_buy_for_data()
-    print(x)
+    main()
