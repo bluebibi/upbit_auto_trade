@@ -88,6 +88,11 @@ UPBIT = Upbit(CLIENT_ID_UPBIT, CLIENT_SECRET_UPBIT, fmt)
 SQL_HANDLER = SqliteHandler(sqlite3_db_filename)
 SLACK = PushSlack(SLACK_WEBHOOK_URL_1, SLACK_WEBHOOK_URL_2)
 
+MIN_VALID_LOSS_THRESHOLD = config['EVALUATION']['min_valid_loss_threshold']
+LAST_VALID_ACCURACY_THRESHOLD = config['EVALUATION']['last_valid_accuracy_threshold']
+LAST_SAVE_EPOCH_THRESHOLD = config['EVALUATION']['last_save_epoch_threshold']
+ONE_RATE_VALID_THRESHOLD = config['EVALUATION']['one_rate_valid_threshold']
+
 if __name__ == "__main__":
     SQL_HANDLER.create_tables(UPBIT.get_all_coin_names())
     #SQL_HANDLER.drop_tables(UPBIT.get_all_coin_names())

@@ -17,7 +17,7 @@ class EarlyStopping:
         self.verbose = verbose
         self.counter = 0
         self.early_stop = False
-        self.valid_loss_min = np.Inf
+        self.min_valid_loss = np.Inf
         self.coin_name = coin_name
         self.last_save_epoch = -1
         self.last_filename = None
@@ -27,9 +27,9 @@ class EarlyStopping:
 
     def __call__(self, valid_loss, valid_accuracy, epoch, model, valid_size, one_count_rate):
         if epoch > 0:
-            if self.valid_loss_min is np.Inf:
+            if self.min_valid_loss is np.Inf:
                 self.save_checkpoint(valid_loss, valid_accuracy, epoch, model, valid_size, one_count_rate)
-            elif valid_loss > self.valid_loss_min:
+            elif valid_loss > self.min_valid_loss:
                 self.counter += 1
                 if self.verbose:
                     self.logger.info(f'EarlyStopping counter: {self.counter} out of {self.patience} @ Epoch {epoch}\n')
@@ -45,7 +45,7 @@ class EarlyStopping:
         '''Saves model when validation loss decrease.'''
         if self.verbose:
             self.logger.info(f'{self.coin_name}: Saving Model @ Epoch {epoch} - Validation Loss Decreased '
-                             f'({self.valid_loss_min:.6f} --> {valid_loss:.6f}) - Validation Accuracy {valid_accuracy:.6f}\n')
+                             f'({self.min_valid_loss:.6f} --> {valid_loss:.6f}) - Validation Accuracy {valid_accuracy:.6f}\n')
 
         new_filename = "{0}_{1}_{2:.2f}_{3:.2f}_{4}_{5:.2f}.pt".format(
             self.coin_name,
@@ -59,7 +59,7 @@ class EarlyStopping:
         self.last_state_dict = model.state_dict()
 
         self.last_filename = new_filename
-        self.valid_loss_min = valid_loss
+        self.min_valid_loss = valid_loss
         self.last_save_epoch = epoch
         self.last_valid_accuracy = valid_accuracy
 

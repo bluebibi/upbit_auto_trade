@@ -124,7 +124,7 @@ def main():
     batch_size = 6
     lr = 0.001
 
-    heading_msg = "**************************"
+    heading_msg = "**************************\n"
     heading_msg += "{0} Model - WINDOW SIZE:{1}, FUTURE_TARGET_SIZE:{2}, UP_RATE:{3}, TRAIN_COLS:{4}, INPUT_SIZE:{5}".format(
         "CNN" if USE_CNN_MODEL else "LSTM",
         WINDOW_SIZE,
@@ -133,6 +133,8 @@ def main():
         "ALL" if TRAIN_COLS_FULL else "OHLCV",
         INPUT_SIZE
     )
+
+    print(heading_msg)
 
     if USE_CNN_MODEL:
         global_model = CNN(input_width=INPUT_SIZE, input_height=WINDOW_SIZE).to(DEVICE)
@@ -318,15 +320,15 @@ def main():
             logger.info("Normal Stopping @ Epoch {0}: Last Save Epoch {1}".format(NUM_EPOCHS, early_stopping.last_save_epoch))
 
         high_quality_model_condition_list = [
-            early_stopping.valid_loss_min < 1.0,
-            early_stopping.last_valid_accuracy > 75.0,
-            early_stopping.last_save_epoch > 10,
-            one_rate_valid > 0.25
+            early_stopping.min_valid_loss < MIN_VALID_LOSS_THRESHOLD,
+            early_stopping.last_valid_accuracy > LAST_VALID_ACCURACY_THRESHOLD,
+            early_stopping.last_save_epoch > LAST_SAVE_EPOCH_THRESHOLD,
+            one_rate_valid > ONE_RATE_VALID_THRESHOLD
         ]
 
         msg = "Last Save Epoch: {0:3d} - Min of Valid Loss: {1:.4f}, Last Valid Accuracy:{2:.4f} - {3}".format(
             early_stopping.last_save_epoch,
-            early_stopping.valid_loss_min,
+            early_stopping.min_valid_loss,
             early_stopping.last_valid_accuracy,
             all(high_quality_model_condition_list)
         )
@@ -337,7 +339,7 @@ def main():
 
             save_graph(
                 coin_name,
-                early_stopping.valid_loss_min,
+                early_stopping.min_valid_loss,
                 early_stopping.last_valid_accuracy,
                 early_stopping.last_save_epoch,
                 valid_size, one_rate_valid,
