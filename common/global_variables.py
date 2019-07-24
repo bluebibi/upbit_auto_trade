@@ -1,6 +1,11 @@
 import os
 from enum import Enum
 import configparser
+import torch
+
+from db.sqlite_handler import SqliteHandler
+from upbit.slack import PushSlack
+from upbit.upbit_api import Upbit
 
 
 class CoinStatus(Enum):
@@ -67,14 +72,21 @@ NUM_EPOCHS = int(config['TRAIN']['num_epochs'])
 WINDOW_SIZE = int(config['DATA']['window_size'])
 FUTURE_TARGET_SIZE = int(config['DATA']['future_target_size'])
 UP_RATE = float(config['DATA']['up_rate'])
-TRAIN_COLS = ["open_price", "high_price", "low_price", "close_price", "volume", "total_ask_size",
+TRAIN_COLS_FULL = config.getboolean('DATA', 'train_cols_full')
+if TRAIN_COLS_FULL:
+    TRAIN_COLS = ["open_price", "high_price", "low_price", "close_price", "volume", "total_ask_size",
               "total_bid_size", "btmi", "btmi_rate", "btai", "btai_rate"]
-#TRAIN_COLS = ["open_price", "high_price", "low_price", "close_price", "volume"]
+else:
+    TRAIN_COLS = ["open_price", "high_price", "low_price", "close_price", "volume"]
 INPUT_SIZE = len(TRAIN_COLS)
 
 VERBOSE = True
 
+DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+UPBIT = Upbit(CLIENT_ID_UPBIT, CLIENT_SECRET_UPBIT, fmt)
+SQL_HANDLER = SqliteHandler(sqlite3_db_filename)
+SLACK = PushSlack(SLACK_WEBHOOK_URL_1, SLACK_WEBHOOK_URL_2)
+
 if __name__ == "__main__":
-    print(SLACK_WEBHOOK_URL_1)
-
-
+    SQL_HANDLER.create_tables(UPBIT.get_all_coin_names())
+    #SQL_HANDLER.drop_tables(UPBIT.get_all_coin_names())

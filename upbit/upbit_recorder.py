@@ -1,7 +1,4 @@
-from common.config import *
-from db.sqlite_handler import SqliteHandler
-from upbit.slack import PushSlack
-from upbit.upbit_api import Upbit
+from common.global_variables import *
 
 price_insert = "INSERT INTO {0} VALUES(NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);"
 select_by_datetime = "SELECT * FROM {0} WHERE datetime='{1}';"
@@ -9,15 +6,13 @@ select_by_datetime = "SELECT * FROM {0} WHERE datetime='{1}';"
 
 class Upbit_Recorder:
     def __init__(self):
-        self.sql_handler = SqliteHandler(sqlite3_db_filename)
-        self.upbit = Upbit(CLIENT_ID_UPBIT, CLIENT_SECRET_UPBIT)
-        self.coin_names = self.upbit.get_all_coin_names()
+        self.coin_names = UPBIT.get_all_coin_names()
 
     def record(self, coin_name):
-        i = self.upbit.get_market_index()
+        i = UPBIT.get_market_index()
 
         ticker = "KRW-" + coin_name
-        r = self.upbit.get_ohlcv(ticker, interval="minute10").values
+        r = UPBIT.get_ohlcv(ticker, interval="minute10").values
 
         new_records = 0
 
@@ -30,11 +25,11 @@ class Upbit_Recorder:
             volume = row[5]
 
             if not self.exist_row_by_datetime(coin_name, datetime):
-                o = self.upbit.get_orderbook(tickers=ticker)
+                o = UPBIT.get_orderbook(tickers=ticker)
 
-                self.cursor = self.sql_handler.conn.cursor()
+                cursor = SQL_HANDLER.conn.cursor()
 
-                self.cursor.execute(price_insert.format("KRW_" + coin_name), (
+                cursor.execute(price_insert.format("KRW_" + coin_name), (
                     datetime,
                     open_price,
                     high_price,
@@ -48,33 +43,33 @@ class Upbit_Recorder:
                     i['data']['btai']['market_index'],
                     i['data']['btai']['rate']
                 ))
-                self.sql_handler.conn.commit()
+                SQL_HANDLER.conn.commit()
                 new_records += 1
         return new_records
 
     def exist_row_by_datetime(self, coin_name, datetime):
-        self.cursor = self.sql_handler.conn.cursor()
-        self.cursor.execute(select_by_datetime.format("KRW_" + coin_name, datetime))
+        cursor = SQL_HANDLER.conn.cursor()
+        cursor.execute(select_by_datetime.format("KRW_" + coin_name, datetime))
 
-        row = self.cursor.fetchall()
+        row = cursor.fetchall()
+
+        SQL_HANDLER.conn.commit()
         if len(row) == 0:
-            self.sql_handler.conn.commit()
             return False
         else:
-            self.sql_handler.conn.commit()
+
             return True
 
 
 if __name__ == "__main__":
     upbit_recorder = Upbit_Recorder()
-    slack = PushSlack()
 
     total_new_records = 0
     for coin_name in upbit_recorder.coin_names:
         total_new_records += upbit_recorder.record(coin_name)
 
     msg = "Number of new upbit records: {0} @ {1}".format(total_new_records, SOURCE)
-    slack.send_message("me", msg)
+    SLACK.send_message("me", msg)
 
 
 

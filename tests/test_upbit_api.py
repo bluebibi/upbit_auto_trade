@@ -1,6 +1,6 @@
 import unittest
 import numpy as np
-from common.config import *
+from common.global_variables import *
 from upbit.upbit_api import Upbit
 import pprint
 
@@ -50,3 +50,20 @@ class UpBitAPITestCase(unittest.TestCase):
         pp.pprint(self.upbit.get_orderbook(tickers="KRW-BTC"))
         pp.pprint(self.upbit.get_market_index())
         pass
+
+    def test_get_balance(self):
+        pp.pprint(upbit.get_balances())
+
+        # 원화 잔고 조회
+        print(upbit.get_balance(ticker="KRW"))
+        print(upbit.get_balance(ticker="KRW-BTC"))
+        print(upbit.get_balance(ticker="KRW-XRP"))
+
+        # 매도
+        # print(upbit.sell_limit_order("KRW-XRP", 1000, 20))
+
+        # 매수
+        # print(upbit.buy_limit_order("KRW-XRP", 200, 20))
+
+        # 주문 취소
+        # print(upbit.cancel_order('82e211da-21f6-4355-9d76-83e7248e2c0c'))

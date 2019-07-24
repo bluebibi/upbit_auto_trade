@@ -1,10 +1,9 @@
-from common.config import *
 import json
 import requests
 
 
 class PushSlack:
-    def __init__(self):
+    def __init__(self, SLACK_WEBHOOK_URL_1, SLACK_WEBHOOK_URL_2):
         if SLACK_WEBHOOK_URL_1 and SLACK_WEBHOOK_URL_1.startswith("http"):
             self.webhook_url_1 = SLACK_WEBHOOK_URL_1
         else:

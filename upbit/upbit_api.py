@@ -2,7 +2,6 @@ import time
 import jwt
 from urllib.parse import urlencode
 import re
-from common.config import *
 import pprint
 import requests
 from requests.adapters import HTTPAdapter
@@ -156,9 +155,10 @@ def _call_public_api(url, **kwargs):
 
 
 class Upbit:
-    def __init__(self, access, secret):
+    def __init__(self, access, secret, fmt):
         self.access = access
         self.secret = secret
+        self.fmt = fmt
 
     def _request_headers(self, data=None):
         payload = {
@@ -390,7 +390,7 @@ class Upbit:
                 url = "https://api.upbit.com/v1/candles/days"
 
             contents = _call_public_api(url, market=ticker, count=count)
-            dt_list = [datetime.datetime.strptime(x['candle_date_time_kst'], fmt) for x in contents]
+            dt_list = [datetime.datetime.strptime(x['candle_date_time_kst'], self.fmt) for x in contents]
             df = pd.DataFrame(contents, columns=['candle_date_time_kst', 'opening_price', 'high_price', 'low_price', 'trade_price',
                                                  'candle_acc_trade_volume'],
                               index=dt_list)
@@ -490,28 +490,6 @@ class Upbit:
             if m['market'].startswith('KRW-'):
                 coin_names.append(m['market'].split('-')[1])
         return coin_names
-
-
-if __name__ == "__main__":
-    # Upbit
-    upbit = Upbit(CLIENT_ID_UPBIT, CLIENT_SECRET_UPBIT)
-
-    # 모든 잔고 조회
-    pp.pprint(upbit.get_balances())
-
-    # 원화 잔고 조회
-    print(upbit.get_balance(ticker="KRW"))
-    print(upbit.get_balance(ticker="KRW-BTC"))
-    print(upbit.get_balance(ticker="KRW-XRP"))
-
-    # 매도
-    #print(upbit.sell_limit_order("KRW-XRP", 1000, 20))
-
-    # 매수
-    #print(upbit.buy_limit_order("KRW-XRP", 200, 20))
-
-    # 주문 취소
-    #print(upbit.cancel_order('82e211da-21f6-4355-9d76-83e7248e2c0c'))
 
 
 

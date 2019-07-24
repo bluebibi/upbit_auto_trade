@@ -1,8 +1,7 @@
 import torch
 import torch.nn as nn
 from torch.nn import init
-
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+from common.global_variables import *
 
 
 class LSTM(nn.Module):
@@ -37,6 +36,6 @@ class LSTM(nn.Module):
         return out.squeeze(dim=1)
 
     def init_hidden(self, x):
-        hidden = torch.zeros(self.num_layers, x.size(0), self.hidden_size).to(device)
-        cell = torch.zeros(self.num_layers, x.size(0), self.hidden_size).to(device)
+        hidden = torch.zeros(self.num_layers, x.size(0), self.hidden_size).to(DEVICE)
+        cell = torch.zeros(self.num_layers, x.size(0), self.hidden_size).to(DEVICE)
         return hidden, cell

@@ -1,39 +1,58 @@
-from common.config import *
-from db.sqlite_handler import SqliteHandler
-from upbit.upbit_api import Upbit
+from common.global_variables import *
 import pandas as pd
 from sklearn.preprocessing import MinMaxScaler
 import numpy as np
 import torch
 
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+select_all = "SELECT * FROM {0};"
+select_recent_window = "SELECT * FROM {0} ORDER BY id DESC LIMIT {1};"
 
-select_by_datetime = "SELECT * FROM {0};"
 
-
-class Upbit_Data:
-    def __init__(self, coin_name, train_cols):
-        self.sql_handler = SqliteHandler(sqlite3_db_filename)
-        self.upbit = Upbit(CLIENT_ID_UPBIT, CLIENT_SECRET_UPBIT)
+class UpbitData:
+    def __init__(self, coin_name):
         self.coin_name = coin_name
-        self.train_cols = train_cols
 
-    def get_data(self, num, coin_name, windows_size=10, future_target_size=6, up_rate=0.05, cnn=False, verbose=True):
-        df = pd.read_sql_query(select_by_datetime.format("KRW_" + self.coin_name), self.sql_handler.conn)
-        df = df.drop(["id", "datetime"], axis=1)
+    def get_buy_for_data(self):
+        df = pd.read_sql_query(
+            select_recent_window.format("KRW_" + self.coin_name, WINDOW_SIZE),
+            SQL_HANDLER.conn
+        )
 
-        data = torch.from_numpy(df.values).to(device)
+        df = df.sort_values('id', ascending=True)
+
+        if TRAIN_COLS_FULL:
+            df = df.drop(["id", "datetime"], axis=1)
+        else:
+            df = df.drop(["id", "datetime", "total_ask_size", "total_bid_size", "btmi", "btmi_rate", "btai", "btai_rate"], axis=1)
+
+        min_max_scaler = MinMaxScaler()
+        x_normalized = min_max_scaler.fit_transform(df.values)
+        x_normalized = torch.from_numpy(x_normalized).float().to(DEVICE)
+
+        if USE_CNN_MODEL:
+            return x_normalized.unsqueeze(dim=0).unsqueeze(dim=0)
+        else:
+            return x_normalized.unsqueeze(dim=0)
+
+    def get_data(self):
+        df = pd.read_sql_query(select_all.format("KRW_" + self.coin_name), SQL_HANDLER.conn)
+        if TRAIN_COLS_FULL:
+            df = df.drop(["id", "datetime"], axis=1)
+        else:
+            df = df.drop(["id", "datetime", "total_ask_size", "total_bid_size", "btmi", "btmi_rate", "btai", "btai_rate"], axis=1)
+
+        data = torch.from_numpy(df.values).to(DEVICE)
 
         min_max_scaler = MinMaxScaler()
         data_normalized = min_max_scaler.fit_transform(data)
-        data_normalized = torch.from_numpy(data_normalized).to(device)
+        data_normalized = torch.from_numpy(data_normalized).to(DEVICE)
 
         x, x_normalized, y, y_normalized, y_up, one_rate, total_size = self.build_timeseries(
             data=data,
             data_normalized=data_normalized,
-            window_size=windows_size,
-            future_target_size=future_target_size,
-            up_rate=up_rate
+            window_size=WINDOW_SIZE,
+            future_target_size=FUTURE_TARGET_SIZE,
+            up_rate=UP_RATE
         )
 
         indices = list(range(total_size))
@@ -63,25 +82,26 @@ class Upbit_Data:
         train_size = x_train.size(0)
         valid_size = x_valid.size(0)
 
-        if cnn:
+        if USE_CNN_MODEL:
             return x_train.unsqueeze(dim=1), x_train_normalized.unsqueeze(dim=1), y_train, y_train_normalized, y_up_train, one_rate_train, train_size,\
                    x_valid.unsqueeze(dim=1), x_valid_normalized.unsqueeze(dim=1), y_valid, y_valid_normalized, y_up_valid, one_rate_valid, valid_size
         else:
             return x_train, x_train_normalized, y_train, y_train_normalized, y_up_train, one_rate_train, train_size,\
                    x_valid, x_valid_normalized, y_valid, y_valid_normalized, y_up_valid, one_rate_valid, valid_size
 
-    def build_timeseries(self, data, data_normalized, window_size, future_target_size, up_rate):
+    @staticmethod
+    def build_timeseries(data, data_normalized, window_size, future_target_size, up_rate):
         y_col_index = 3
         future_target = future_target_size - 1
 
         dim_0 = data.shape[0] - window_size - future_target
         dim_1 = data.shape[1]
 
-        x = torch.zeros((dim_0, window_size, dim_1)).to(device)
-        x_normalized = torch.zeros((dim_0, window_size, dim_1)).to(device)
-        y = torch.zeros((dim_0,)).to(device)
-        y_normalized = torch.zeros((dim_0,)).to(device)
-        y_up = torch.zeros((dim_0,)).float().to(device)
+        x = torch.zeros((dim_0, window_size, dim_1)).to(DEVICE)
+        x_normalized = torch.zeros((dim_0, window_size, dim_1)).to(DEVICE)
+        y = torch.zeros((dim_0,)).to(DEVICE)
+        y_normalized = torch.zeros((dim_0,)).to(DEVICE)
+        y_up = torch.zeros((dim_0,)).float().to(DEVICE)
 
         for i in range(dim_0):
             x[i] = data[i: i + window_size]
@@ -126,19 +146,16 @@ def get_data_loader(x, x_normalized, y, y_normalized, y_up_train, batch_size, su
         yield x[indices], x_normalized[indices], y[indices], y_normalized[indices], y_up_train[indices], num_batches
 
 
-if __name__ == "__main__":
-    upbit_data = Upbit_Data('BTC', TRAIN_COLS)
+def main():
+    upbit_data = UpbitData('BTC')
 
     x_train, x_train_normalized, y_train, y_train_normalized, y_up_train, one_rate_train, train_size,\
     x_test, x_test_normalized, y_test, y_test_normalized, y_up_test, one_rate_test, test_size = upbit_data.get_data(
-        num=1,
-        coin_name='BTC',
         windows_size=WINDOW_SIZE,
         future_target_size=FUTURE_TARGET_SIZE,
         up_rate=UP_RATE,
         cnn=True,
-        verbose=VERBOSE
-    ) # 과거 3시간 데이터(6포인트)를 기반으로 현재 기준 향후 12시간 이내 2% 상승 예측
+    )
 
     print(x_train.shape)
     print(x_train_normalized.shape)
@@ -158,7 +175,6 @@ if __name__ == "__main__":
     print(y_test_normalized.shape)
     print(y_up_test.shape)
 
-    batch_size = 4
     train_data_loader = get_data_loader(
         x_train, x_train_normalized, y_train, y_train_normalized, y_up_train, batch_size=4, suffle=False
     )
@@ -186,3 +202,7 @@ if __name__ == "__main__":
         print(y_test_normalized.shape)
         print(y_up_test.shape)
         print(y_up_test)
+
+
+if __name__ == "__main__":
+    main()

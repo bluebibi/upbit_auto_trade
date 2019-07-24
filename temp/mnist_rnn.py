@@ -1,10 +1,7 @@
-import torch
 import torch.nn as nn
 import torchvision
 import torchvision.transforms as transforms
-
-# Device configuration
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+from common.global_variables import *
 
 # Hyper-parameters
 sequence_length = 28
@@ -49,8 +46,8 @@ class RNN(nn.Module):
 
     def forward(self, x):
         # Set initial hidden and cell states
-        h0 = torch.zeros(self.num_layers, x.size(0), self.hidden_size).to(device)
-        c0 = torch.zeros(self.num_layers, x.size(0), self.hidden_size).to(device)
+        h0 = torch.zeros(self.num_layers, x.size(0), self.hidden_size).to(DEVICE)
+        c0 = torch.zeros(self.num_layers, x.size(0), self.hidden_size).to(DEVICE)
 
         # Forward propagate LSTM
         out, _ = self.lstm(x, (h0, c0))  # out: tensor of shape (batch_size, seq_length, hidden_size)
@@ -60,7 +57,7 @@ class RNN(nn.Module):
         return out
 
 
-model = RNN(input_size, hidden_size, num_layers, num_classes).to(device)
+model = RNN(input_size, hidden_size, num_layers, num_classes).to(DEVICE)
 
 # Loss and optimizer
 criterion = nn.CrossEntropyLoss()
@@ -70,8 +67,8 @@ optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
 total_step = len(train_loader)
 for epoch in range(num_epochs):
     for i, (images, labels) in enumerate(train_loader):
-        images = images.reshape(-1, sequence_length, input_size).to(device)
-        labels = labels.to(device)
+        images = images.reshape(-1, sequence_length, input_size).to(DEVICE)
+        labels = labels.to(DEVICE)
 
         # Forward pass
         outputs = model(images)
@@ -91,8 +88,8 @@ with torch.no_grad():
     correct = 0
     total = 0
     for images, labels in test_loader:
-        images = images.reshape(-1, sequence_length, input_size).to(device)
-        labels = labels.to(device)
+        images = images.reshape(-1, sequence_length, input_size).to(DEVICE)
+        labels = labels.to(DEVICE)
         outputs = model(images)
         _, predicted = torch.max(outputs.data, 1)
         total += labels.size(0)

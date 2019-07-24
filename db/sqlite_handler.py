@@ -1,8 +1,5 @@
 import sqlite3
 
-from common.config import CLIENT_ID_UPBIT, CLIENT_SECRET_UPBIT, sqlite3_db_filename
-from upbit.upbit_api import Upbit
-
 
 class SqliteHandler:
     def __init__(self, sqlite3_db_filename):
@@ -32,8 +29,3 @@ class SqliteHandler:
         self.conn.close()
 
 
-if __name__ == "__main__":
-    upbit = Upbit(CLIENT_ID_UPBIT, CLIENT_SECRET_UPBIT)
-    sqlite = SqliteHandler(sqlite3_db_filename)
-    sqlite.create_tables(upbit.get_all_coin_names())
-    #sqlite.drop_tables(upbit.get_all_coin_names())

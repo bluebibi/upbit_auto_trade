@@ -1,13 +1,10 @@
 # https://github.com/pytorch/ignite/blob/master/examples/notebooks/FashionMNIST.ipynb
 import glob
 import time
-import torch
 import torch.nn as nn
 
-from common.config import CLIENT_ID_UPBIT, CLIENT_SECRET_UPBIT, NUM_EPOCHS, USE_CNN_MODEL
-from common.config import FUTURE_TARGET_SIZE, UP_RATE, VERBOSE, TRAIN_COLS, WINDOW_SIZE, INPUT_SIZE
-from upbit.upbit_api import Upbit
-from upbit.upbit_data import Upbit_Data, get_data_loader
+from common.global_variables import *
+from upbit.upbit_data import UpbitData, get_data_loader
 import matplotlib.pyplot as plt
 
 from predict.model_rnn import LSTM
@@ -18,8 +15,6 @@ import os
 from common.logger import get_logger
 
 logger = get_logger("main_prediction")
-
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 
 def reset_files(filename):
@@ -131,10 +126,10 @@ def main():
 
     if USE_CNN_MODEL:
         print("CNN Model Setup")
-        global_model = CNN(input_width=INPUT_SIZE, input_height=WINDOW_SIZE).to(device)
+        global_model = CNN(input_width=INPUT_SIZE, input_height=WINDOW_SIZE).to(DEVICE)
     else:
         print("LSTM Model Setup")
-        global_model = LSTM(input_size=INPUT_SIZE).to(device)
+        global_model = LSTM(input_size=INPUT_SIZE).to(DEVICE)
 
     global_optimizer = torch.optim.Adam(global_model.parameters(), lr=lr)
     global_criterion = nn.BCEWithLogitsLoss()
@@ -153,31 +148,24 @@ def main():
 
     patience = 50
 
-    upbit = Upbit(CLIENT_ID_UPBIT, CLIENT_SECRET_UPBIT)
-    coin_names = upbit.get_all_coin_names()
+    coin_names = UPBIT.get_all_coin_names()
 
     for i, coin_name in enumerate(coin_names):
-        upbit_data = Upbit_Data(coin_name, TRAIN_COLS)
+        upbit_data = UpbitData(coin_name)
 
         x_train_original, x_train_normalized_original, y_train_original, y_train_normalized_original, y_up_train_original, \
         one_rate_train, train_size, \
         x_valid_original, x_valid_normalized_original, y_valid_original, y_valid_normalized_original, y_up_valid_original, \
-        one_rate_valid, valid_size = upbit_data.get_data(
-            num=i,
-            coin_name=coin_name,
-            windows_size=WINDOW_SIZE,
-            future_target_size=FUTURE_TARGET_SIZE,
-            up_rate=UP_RATE,
-            cnn=USE_CNN_MODEL,
-            verbose=VERBOSE
-        )
+        one_rate_valid, valid_size = upbit_data.get_data()
 
         if VERBOSE:
-            msg = "{0:>2} [{1:>5}] Train Size: {2:4}[{3:.4f}], Validation Size: {4:3}[{5:.4f}]".format(
+            msg = "{0:>2} [{1:>5}] Train Size:{2:>3d}/{3:>3}[{4:.4f}], Validation Size:{5:>3d}/{6:>3}[{7:.4f}]".format(
                 i,
                 coin_name,
+                int(y_up_train_original.sum()),
                 train_size,
                 one_rate_train,
+                int(y_up_valid_original.sum()),
                 valid_size,
                 one_rate_valid
             )
@@ -188,9 +176,9 @@ def main():
         global_one_rate_valid_list.append(one_rate_valid)
 
         if USE_CNN_MODEL:
-            model = CNN(input_width=INPUT_SIZE, input_height=WINDOW_SIZE).to(device)
+            model = CNN(input_width=INPUT_SIZE, input_height=WINDOW_SIZE).to(DEVICE)
         else:
-            model = LSTM(input_size=INPUT_SIZE).to(device)
+            model = LSTM(input_size=INPUT_SIZE).to(DEVICE)
 
         optimizer = torch.optim.Adam(model.parameters(), lr=lr)
         criterion = nn.BCEWithLogitsLoss()
@@ -322,8 +310,8 @@ def main():
             logger.info("Normal Stopping @ Epoch {0}: Last Save Epoch {1}".format(NUM_EPOCHS, early_stopping.last_save_epoch))
 
         high_quality_model_condition_list = [
-            early_stopping.last_val_accuracy > 0.65,
             early_stopping.val_loss_min < 1.0,
+            early_stopping.last_val_accuracy > 75.0,
             early_stopping.last_save_epoch > 10,
             one_rate_valid > 0.35
         ]
