@@ -124,11 +124,19 @@ def main():
     batch_size = 6
     lr = 0.001
 
+    heading_msg = "**************************"
+    heading_msg += "{0} Model - WINDOW SIZE:{1}, FUTURE_TARGET_SIZE:{2}, UP_RATE:{3}, TRAIN_COLS:{4}, INPUT_SIZE:{5}".format(
+        "CNN" if USE_CNN_MODEL else "LSTM",
+        WINDOW_SIZE,
+        FUTURE_TARGET_SIZE,
+        UP_RATE,
+        "ALL" if TRAIN_COLS_FULL else "OHLCV",
+        INPUT_SIZE
+    )
+
     if USE_CNN_MODEL:
-        print("CNN Model Setup")
         global_model = CNN(input_width=INPUT_SIZE, input_height=WINDOW_SIZE).to(DEVICE)
     else:
-        print("LSTM Model Setup")
         global_model = LSTM(input_size=INPUT_SIZE).to(DEVICE)
 
     global_optimizer = torch.optim.Adam(global_model.parameters(), lr=lr)
@@ -313,7 +321,7 @@ def main():
             early_stopping.val_loss_min < 1.0,
             early_stopping.last_val_accuracy > 75.0,
             early_stopping.last_save_epoch > 10,
-            one_rate_valid > 0.35
+            one_rate_valid > 0.25
         ]
 
         msg = "Last Save Epoch: {0:3d} - Min of Valid Loss: {1:.4f}, Last Valid Accuracy:{2:.4f} - {3}".format(

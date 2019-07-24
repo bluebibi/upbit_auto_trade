@@ -71,4 +71,6 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    upbit_data = UpbitData("DASH")
+    x = upbit_data.get_buy_for_data()
+    print(x)

@@ -78,7 +78,8 @@ if TRAIN_COLS_FULL:
               "total_bid_size", "btmi", "btmi_rate", "btai", "btai_rate"]
 else:
     TRAIN_COLS = ["open_price", "high_price", "low_price", "close_price", "volume"]
-INPUT_SIZE = len(TRAIN_COLS)
+
+INPUT_SIZE = len(TRAIN_COLS) + 5
 
 VERBOSE = True
 

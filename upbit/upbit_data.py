@@ -4,26 +4,58 @@ from sklearn.preprocessing import MinMaxScaler
 import numpy as np
 import torch
 
-select_all = "SELECT * FROM {0};"
-select_recent_window = "SELECT * FROM {0} ORDER BY id DESC LIMIT {1};"
+base_sql_str = """
+    SELECT C.id as 'id', 
+    B.datetime as 'datetime',
+    B.open_price as 'open_price_btc', 
+    C.open_price as 'open_price', 
+    B.high_price as 'high_price_btc', 
+    C.high_price as 'high_price', 
+    B.low_price as 'low_price_btc', 
+    C.low_price as 'low_price', 
+    B.close_price as 'close_price_btc', 
+    C.close_price as 'close_price', 
+    B.volume as 'volume_btc', 
+    C.volume as 'volume' 
+"""
 
+select_all_with_btc = base_sql_str + """
+    , C.total_ask_size, C.total_bid_size, C.btmi, C.btmi_rate, C.btai, C.btai_rate 
+    FROM KRW_BTC as B INNER JOIN {0} as C ON B.datetime = C.datetime
+"""
+
+select_ohlcv_with_btc = base_sql_str + """
+    FROM KRW_BTC as B INNER JOIN {0} as C ON B.datetime = C.datetime
+"""
+
+select_all_with_btc_recent_window = base_sql_str + """
+    , C.total_ask_size, C.total_bid_size, C.btmi, C.btmi_rate, C.btai, C.btai_rate 
+    FROM KRW_BTC as B INNER JOIN {0} as C ON B.datetime = C.datetime ORDER BY id DESC LIMIT {1};
+"""
+
+select_ohlcv_with_btc_recent_window = base_sql_str + """
+    FROM KRW_BTC as B INNER JOIN {0} as C ON B.datetime = C.datetime ORDER BY id DESC LIMIT {1};
+"""
 
 class UpbitData:
     def __init__(self, coin_name):
         self.coin_name = coin_name
 
     def get_buy_for_data(self):
-        df = pd.read_sql_query(
-            select_recent_window.format("KRW_" + self.coin_name, WINDOW_SIZE),
-            SQL_HANDLER.conn
-        )
+        if TRAIN_COLS_FULL:
+            df = pd.read_sql_query(
+                select_all_with_btc_recent_window.format("KRW_" + self.coin_name, WINDOW_SIZE),
+                SQL_HANDLER.conn
+            )
+        else:
+            df = pd.read_sql_query(
+                select_ohlcv_with_btc_recent_window.format("KRW_" + self.coin_name, WINDOW_SIZE),
+                SQL_HANDLER.conn
+            )
 
         df = df.sort_values('id', ascending=True)
 
-        if TRAIN_COLS_FULL:
-            df = df.drop(["id", "datetime"], axis=1)
-        else:
-            df = df.drop(["id", "datetime", "total_ask_size", "total_bid_size", "btmi", "btmi_rate", "btai", "btai_rate"], axis=1)
+        df = df.drop(["id", "datetime"], axis=1)
 
         min_max_scaler = MinMaxScaler()
         x_normalized = min_max_scaler.fit_transform(df.values)
@@ -35,11 +67,12 @@ class UpbitData:
             return x_normalized.unsqueeze(dim=0)
 
     def get_data(self):
-        df = pd.read_sql_query(select_all.format("KRW_" + self.coin_name), SQL_HANDLER.conn)
         if TRAIN_COLS_FULL:
-            df = df.drop(["id", "datetime"], axis=1)
+            df = pd.read_sql_query(select_all_with_btc.format("KRW_" + self.coin_name), SQL_HANDLER.conn)
         else:
-            df = df.drop(["id", "datetime", "total_ask_size", "total_bid_size", "btmi", "btmi_rate", "btai", "btai_rate"], axis=1)
+            df = pd.read_sql_query(select_ohlcv_with_btc.format("KRW_" + self.coin_name), SQL_HANDLER.conn)
+
+        df = df.drop(["id", "datetime"], axis=1)
 
         data = torch.from_numpy(df.values).to(DEVICE)
 

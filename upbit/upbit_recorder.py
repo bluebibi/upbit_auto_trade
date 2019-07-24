@@ -1,3 +1,5 @@
+import time
+
 from common.global_variables import *
 
 price_insert = "INSERT INTO {0} VALUES(NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);"
@@ -67,6 +69,7 @@ if __name__ == "__main__":
     total_new_records = 0
     for coin_name in upbit_recorder.coin_names:
         total_new_records += upbit_recorder.record(coin_name)
+        time.sleep(0.05)
 
     msg = "Number of new upbit records: {0} @ {1}".format(total_new_records, SOURCE)
     SLACK.send_message("me", msg)
