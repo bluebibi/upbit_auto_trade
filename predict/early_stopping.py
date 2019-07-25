@@ -8,7 +8,7 @@ import torch
 
 class EarlyStopping:
     """Early stops the training if validation loss doesn't improve after a given patience."""
-    def __init__(self, coin_name, patience=7, verbose=False, logger=None):
+    def __init__(self, model_type, coin_name, patience=7, verbose=False, logger=None):
         """
         Args:
             patience (int): How long to wait after last time validation loss improved.
@@ -16,6 +16,7 @@ class EarlyStopping:
             verbose (bool): If True, prints a message for each validation loss improvement.
                             Default: False
         """
+        self.model_type = model_type
         self.patience = patience
         self.verbose = verbose
         self.counter = 0
@@ -67,9 +68,9 @@ class EarlyStopping:
         self.last_valid_accuracy = valid_accuracy
 
     def save_last_model(self):
-        files = glob.glob('./models/{0}*'.format(self.coin_name))
+        files = glob.glob('./models/{0}/{1}*'.format(self.model_type, self.coin_name))
         for f in files:
             os.remove(f)
 
-        file_name = "./models/" + self.last_filename
+        file_name = "./models/{0}/{1}".format(self.model_type, self.last_filename)
         torch.save(self.last_state_dict, file_name)

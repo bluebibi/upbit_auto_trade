@@ -96,9 +96,9 @@ def main():
 
     right_time_coin_names = get_db_right_time_coin_names()
 
-    print(len(good_cnn_models), len(good_lstm_models), len(right_time_coin_names))
-
     target_coin_names = set(good_cnn_models) and set(good_lstm_models) and set(right_time_coin_names)
+
+    print(len(good_cnn_models), len(good_lstm_models), len(right_time_coin_names), target_coin_names)
 
     if len(target_coin_names) > 0:
         buy_try_coin_info = {}

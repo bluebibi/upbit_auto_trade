@@ -196,7 +196,7 @@ def main(model_type):
         train_accuracy_list = []
         valid_accuracy_list = []
 
-        early_stopping = EarlyStopping(coin_name=coin_name, patience=patience, verbose=VERBOSE, logger=logger)
+        early_stopping = EarlyStopping(model_type=model_type, coin_name=coin_name, patience=patience, verbose=VERBOSE, logger=logger)
 
         early_stopped = False
         for epoch in range(1, NUM_EPOCHS + 1):
