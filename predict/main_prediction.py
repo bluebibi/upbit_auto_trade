@@ -325,7 +325,7 @@ def main(model_type):
 if __name__ == "__main__":
     mkdir_models()
 
-    SLACK.send_message("me", "MAKE MODELS STARTED!")
+    SLACK.send_message("me", "MAKE MODELS STARTED @ {0}".format(SOURCE))
 
     main(model_type="LSTM")
     main(model_type="CNN")

@@ -6,7 +6,7 @@ from common.global_variables import *
 
 price_insert = "INSERT INTO {0} VALUES(NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);"
 select_by_datetime = "SELECT * FROM {0} WHERE datetime='{1}';"
-
+remove_duplicated_datetime_sql = "SELECT datetime, COUNT(*) c FROM {0} GROUP BY datetime HAVING c > 1;"
 
 class UpbitRecorder:
     def __init__(self):
@@ -58,6 +58,12 @@ class UpbitRecorder:
 
         return new_records
 
+    def remove_duplicated_datetime(self, coin_name):
+        with sqlite3.connect(sqlite3_db_filename, timeout=10, isolation_level=None, check_same_thread=False) as conn:
+            cursor = conn.cursor()
+            cursor.execute(remove_duplicated_datetime_sql.format("KRW_" + coin_name))
+            conn.commit()
+
     def exist_row_by_datetime(self, coin_name, datetime):
         with sqlite3.connect(sqlite3_db_filename, timeout=10, isolation_level=None, check_same_thread=False) as conn:
             cursor = conn.cursor()
@@ -81,6 +87,9 @@ if __name__ == "__main__":
     for coin_name in upbit_recorder.coin_names:
         total_new_records += upbit_recorder.record(coin_name)
         time.sleep(0.05)
+
+    for coin_name in upbit_recorder.coin_names:
+        upbit_recorder.remove_duplicated_datetime(coin_name)
 
     msg = "Number of new upbit records: {0} @ {1}".format(total_new_records, SOURCE)
     SLACK.send_message("me", msg)
