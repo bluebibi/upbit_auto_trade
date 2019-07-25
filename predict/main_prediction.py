@@ -80,7 +80,7 @@ def train(optimizer, model, criterion, train_losses, x_train_normalized, y_up_tr
     train_losses.append(loss.item())
 
     out = torch.sigmoid(out)
-    t = torch.Tensor([0.5]).to(device=DEVICE)
+    t = torch.Tensor([0.5]).to(DEVICE)
     output_index = (out > t).float()
     output_index = output_index * 1
 
@@ -103,7 +103,7 @@ def validate(epoch, model, criterion, valid_losses, x_valid_normalized, y_up_val
     valid_losses.append(loss.item())
 
     out = torch.sigmoid(out)
-    t = torch.Tensor([0.5])
+    t = torch.Tensor([0.5]).to(DEVICE)
     output_index = (out > t).float()
     output_index = output_index * 1
 
