@@ -104,7 +104,8 @@ def validate(epoch, model, criterion, valid_losses, x_valid_normalized, y_up_val
 
     out = torch.sigmoid(out)
     t = torch.Tensor([0.5])
-    output_index = (out > t).float() * 1
+    output_index = (out > t).float()
+    output_index = output_index * 1
 
     if VERBOSE: logger.info("{0}: Predict - {1}, Y - {2}".format(epoch, output_index, y_up_valid))
 
