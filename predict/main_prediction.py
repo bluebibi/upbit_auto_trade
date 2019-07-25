@@ -296,6 +296,7 @@ def main(model_type):
 
             save_graph(
                 coin_name,
+                model_type,
                 early_stopping.min_valid_loss,
                 early_stopping.last_valid_accuracy,
                 early_stopping.last_save_epoch,
