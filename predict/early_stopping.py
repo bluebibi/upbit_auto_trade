@@ -1,4 +1,7 @@
 #https://github.com/Bjarten/early-stopping-pytorch
+import glob
+import os
+
 import numpy as np
 import torch
 
@@ -64,5 +67,9 @@ class EarlyStopping:
         self.last_valid_accuracy = valid_accuracy
 
     def save_last_model(self):
+        files = glob.glob('./models/{0}*'.format(self.coin_name))
+        for f in files:
+            os.remove(f)
+
         file_name = "./models/" + self.last_filename
         torch.save(self.last_state_dict, file_name)

@@ -28,6 +28,10 @@ def reset_files(filename):
 
 
 def save_graph(coin_name, valid_loss_min, last_valid_accuracy, last_save_epoch, valid_size, one_count_rate, avg_train_losses, train_accuracy_list, avg_valid_losses, valid_accuracy_list):
+    files = glob.glob('./graphs/{0}*'.format(coin_name))
+    for f in files:
+        os.remove(f)
+
     plt.clf()
 
     fig, ax_lst = plt.subplots(2, 2, figsize=(30, 10), gridspec_kw={'hspace': 0.35})
@@ -347,6 +351,7 @@ def main():
             )
 
             early_stopping.save_last_model()
+
             if VERBOSE: logger.info("\n")
 
     save_graph(
@@ -375,8 +380,8 @@ def main():
 
 
 if __name__ == "__main__":
-    reset_files("models")
-    reset_files("graphs")
-    reset_files("models/global")
-    reset_files("graphs/global")
+    # reset_files("models")
+    # reset_files("graphs")
+    # reset_files("models/global")
+    # reset_files("graphs/global")
     main()

@@ -1,10 +1,11 @@
 ### 1. 환경 만들기
-
+# https://pytorch.org/
 - conda create -n upbit_auto_trade python=3.7
 - conda activate upbit_auto_trade
 - cd ~/git/upbit_auto_trade/
 - pip install --ignore-installed pip
 - pip install -r requirements.txt
+- conda install pytorch torchvision cudatoolkit=9.0 -c pytorch
 
 ### 2. requirements.txt 구성 
 
