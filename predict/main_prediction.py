@@ -321,7 +321,11 @@ def main(model_type):
     )
     SLACK.send_message("me", slack_msg)
 
+
 if __name__ == "__main__":
     mkdir_models()
+
+    SLACK.send_message("me", "MAKE MODELS STARTED!")
+
     main(model_type="LSTM")
     main(model_type="CNN")
