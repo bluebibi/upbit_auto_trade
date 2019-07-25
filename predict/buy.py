@@ -9,11 +9,11 @@ from predict.model_cnn import CNN
 from predict.model_rnn import LSTM
 from upbit.upbit_data import UpbitData
 from pytz import timezone
-from datetime import datetime
+import datetime as dt
 
 
 select_by_datetime = "SELECT * FROM {0} WHERE datetime='{1}';"
-insert_buy_try_coin_info = "INSERT INTO BUY_SELL (coin_name, buy_datetime, cnn_prob, lstm_prob, buy_price, status) VALUES (?, ?, ?, ?, ?, ?);"
+insert_buy_try_coin_info = "INSERT INTO BUY_SELL (coin_ticker_name, buy_datetime, cnn_prob, lstm_prob, buy_price, status) VALUES (?, ?, ?, ?, ?, ?);"
 
 
 def get_good_quality_coin_names_for_buy():
@@ -44,7 +44,7 @@ def get_good_quality_coin_names_for_buy():
 
 def get_db_right_time_coin_names():
     coin_names = {}
-    now = datetime.now(timezone('Asia/Seoul'))
+    now = dt.datetime.now(timezone('Asia/Seoul'))
     now_str = now.strftime(fmt)
     current_time_str = now_str.replace("T", " ")
     current_time_str = current_time_str[:-4] + "0:00"
@@ -87,10 +87,10 @@ def insert_buy_coin_info(buy_try_coin_info):
         for coin_ticker_name in buy_try_coin_info:
             cursor.execute(insert_buy_try_coin_info, (
                 coin_ticker_name,
-                buy_try_coin_info[coin_ticker_name][0],
-                buy_try_coin_info[coin_ticker_name][1],
-                buy_try_coin_info[coin_ticker_name][2],
-                buy_try_coin_info[coin_ticker_name][3],
+                buy_try_coin_info[coin_ticker_name]["right_time"],
+                float(buy_try_coin_info[coin_ticker_name]["cnn_prob"]),
+                float(buy_try_coin_info[coin_ticker_name]["lstm_prob"]),
+                float(buy_try_coin_info[coin_ticker_name]["buy_price"]),
                 CoinStatus.bought.value
             ))
         conn.commit()
@@ -124,14 +124,18 @@ def main():
 
             if cnn_prob != -1 and lstm_prob != -1:
                 # coin_name --> right_time, prob
-                buy_try_coin_info["KRW-" + coin_name] = [right_time_coin_names[coin_name], cnn_prob, lstm_prob]
+                buy_try_coin_info["KRW-" + coin_name] = {
+                    "right_time": right_time_coin_names[coin_name],
+                    "cnn_prob": cnn_prob,
+                    "lstm_prob": lstm_prob
+                }
                 buy_try_coin_names.append("KRW-" + coin_name)
 
         if buy_try_coin_names:
             prices = UPBIT.get_current_price(buy_try_coin_names)
 
             for coin_ticker_name in buy_try_coin_info:
-                buy_try_coin_info[coin_ticker_name].append(prices[coin_ticker_name])
+                buy_try_coin_info[coin_ticker_name]["buy_price"] = prices[coin_ticker_name]
 
         if len(buy_try_coin_info) > 0:
             insert_buy_coin_info(buy_try_coin_info)

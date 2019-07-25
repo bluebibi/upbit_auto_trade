@@ -21,7 +21,7 @@ class SqliteHandler:
 
             cursor.execute("""
                 CREATE TABLE IF NOT EXISTS BUY_SELL (id INTEGER PRIMARY KEY AUTOINCREMENT, 
-                coin_name TEXT, buy_datetime DATETIME, cnn_prob FLOAT, lstm_prob FLOAT, buy_price FLOAT, 
+                coin_ticker_name TEXT, buy_datetime DATETIME, cnn_prob FLOAT, lstm_prob FLOAT, buy_price FLOAT, 
                 trail_datetime DATETIME, trail_price FLOAT, trail_rate FLOAT, status TINYINT
                 )""")
 
