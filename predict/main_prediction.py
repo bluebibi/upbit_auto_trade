@@ -316,6 +316,10 @@ def main(model_type):
     print("Elapsed Time:", elapsed_time_str)
     print("####################################################################")
 
+    slack_msg = "MODEL TYPE:{0} - HIGH QUALITY MODELS:{1} - ELAPSED_TIME:{2} - SOURCE:{3}".format(
+        model_type, coin_names_high_quality_models, elapsed_time_str, SOURCE
+    )
+    SLACK.send_message("me", slack_msg)
 
 if __name__ == "__main__":
     mkdir_models()
