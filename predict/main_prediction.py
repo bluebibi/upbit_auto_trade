@@ -77,6 +77,7 @@ def save_graph(coin_name, model_type, valid_loss_min, last_valid_accuracy, last_
 
 
 def train(optimizer, model, criterion, train_losses, x_train_normalized, y_up_train):
+    model.train()
     optimizer.zero_grad()
     out = model.forward(x_train_normalized)
 
@@ -104,6 +105,7 @@ def post_train_processing(train_losses, avg_train_losses, train_accuracy_list, c
 
 
 def validate(epoch, model, criterion, valid_losses, x_valid_normalized, y_up_valid):
+    model.eval()
     out = model.forward(x_valid_normalized)
     loss = criterion(out, y_up_valid)
     valid_losses.append(loss.item())
@@ -235,8 +237,6 @@ def main(model_type):
             valid_data_loader = get_data_loader(
                 x_valid, x_valid_normalized, y_valid, y_valid_normalized, y_up_valid, batch_size=batch_size, suffle=False
             )
-
-            model.eval()
 
             correct = 0.0
             total = 0.0
