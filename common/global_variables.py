@@ -82,7 +82,6 @@ VERBOSE = True
 
 DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 UPBIT = Upbit(CLIENT_ID_UPBIT, CLIENT_SECRET_UPBIT, fmt)
-SQL_HANDLER = SqliteHandler(sqlite3_db_filename)
 SLACK = PushSlack(SLACK_WEBHOOK_URL_1, SLACK_WEBHOOK_URL_2)
 
 MIN_VALID_LOSS_THRESHOLD = float(config['EVALUATION']['min_valid_loss_threshold'])

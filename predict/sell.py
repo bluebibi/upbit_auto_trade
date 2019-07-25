@@ -1,3 +1,5 @@
+import sqlite3
+
 from common.global_variables import *
 
 
@@ -6,15 +8,16 @@ insert_buy_try_coin_info = "UPDATE BUY_SELL SET trail_datetime=?, trail_price=?,
 
 
 def select_all_bought_coin_names():
-    cursor = SQL_HANDLER.conn.cursor()
-    cursor.execute(select_all_bought_coin_names_sql, (CoinStatus.bought.value,))
+    with sqlite3.connect(sqlite3_db_filename, timeout=10, isolation_level=None, check_same_thread=False) as conn:
+        cursor = conn.cursor()
+        cursor.execute(select_all_bought_coin_names_sql, (CoinStatus.bought.value,))
 
-    rows = cursor.fetchall()
+        rows = cursor.fetchall()
 
-    for row in rows:
-        print(row)
+        for row in rows:
+            print(row)
 
-    SQL_HANDLER.conn.commit()
+        conn.commit()
 
 
 def main():

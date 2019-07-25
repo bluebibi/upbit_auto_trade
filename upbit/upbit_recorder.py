@@ -1,4 +1,5 @@
 import time
+import sqlite3
 
 from common.global_variables import *
 
@@ -7,7 +8,7 @@ price_insert = "INSERT INTO {0} VALUES(NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 select_by_datetime = "SELECT * FROM {0} WHERE datetime='{1}';"
 
 
-class Upbit_Recorder:
+class UpbitRecorder:
     def __init__(self):
         self.coin_names = UPBIT.get_all_coin_names()
 
@@ -32,45 +33,49 @@ class Upbit_Recorder:
             if not self.exist_row_by_datetime(coin_name, datetime):
                 o = UPBIT.get_orderbook(tickers=ticker)
 
-                cursor = SQL_HANDLER.conn.cursor()
+                with sqlite3.connect(sqlite3_db_filename, timeout=10, isolation_level=None, check_same_thread=False) as conn:
+                    cursor = conn.cursor()
 
-                cursor.execute(price_insert.format("KRW_" + coin_name), (
-                    datetime,
-                    open_price,
-                    high_price,
-                    low_price,
-                    close_price,
-                    volume,
-                    o[0]['total_ask_size'],
-                    o[0]['total_bid_size'],
-                    i['data']['btmi']['market_index'],
-                    i['data']['btmi']['rate'],
-                    i['data']['btai']['market_index'],
-                    i['data']['btai']['rate']
-                ))
-                SQL_HANDLER.conn.commit()
-                new_records += 1
+                    cursor.execute(price_insert.format("KRW_" + coin_name), (
+                        datetime,
+                        open_price,
+                        high_price,
+                        low_price,
+                        close_price,
+                        volume,
+                        o[0]['total_ask_size'],
+                        o[0]['total_bid_size'],
+                        i['data']['btmi']['market_index'],
+                        i['data']['btmi']['rate'],
+                        i['data']['btai']['market_index'],
+                        i['data']['btai']['rate']
+                    ))
+                    conn.commit()
 
-                time.sleep(0.01)
+                    new_records += 1
+
+                    time.sleep(0.01)
 
         return new_records
 
     def exist_row_by_datetime(self, coin_name, datetime):
-        cursor = SQL_HANDLER.conn.cursor()
-        cursor.execute(select_by_datetime.format("KRW_" + coin_name, datetime))
+        with sqlite3.connect(sqlite3_db_filename, timeout=10, isolation_level=None, check_same_thread=False) as conn:
+            cursor = conn.cursor()
+            cursor.execute(select_by_datetime.format("KRW_" + coin_name, datetime))
 
-        row = cursor.fetchall()
+            row = cursor.fetchall()
 
-        SQL_HANDLER.conn.commit()
-        if len(row) == 0:
-            return False
-        else:
+            conn.commit()
 
-            return True
+            if len(row) == 0:
+                return False
+            else:
+
+                return True
 
 
 if __name__ == "__main__":
-    upbit_recorder = Upbit_Recorder()
+    upbit_recorder = UpbitRecorder()
 
     total_new_records = 0
     for coin_name in upbit_recorder.coin_names:

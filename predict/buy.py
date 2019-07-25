@@ -1,4 +1,5 @@
 import glob
+import sqlite3
 
 import sys, os
 sys.path.append(os.getcwd())
@@ -48,17 +49,20 @@ def get_db_right_time_coin_names():
     current_time_str = now_str.replace("T", " ")
     current_time_str = current_time_str[:-4] + "0:00"
 
-    cursor = SQL_HANDLER.conn.cursor()
-    all_coin_names = UPBIT.get_all_coin_names()
-    for coin_name in all_coin_names:
-        cursor.execute(select_by_datetime.format("KRW_" + coin_name, current_time_str))
-        row = cursor.fetchall()
-        if len(row) == 1:
-            coin_names[coin_name] = current_time_str
+    with sqlite3.connect(sqlite3_db_filename, timeout=10, isolation_level=None, check_same_thread=False) as conn:
+        cursor = conn.cursor()
+        all_coin_names = UPBIT.get_all_coin_names()
+        for coin_name in all_coin_names:
+            cursor.execute(select_by_datetime.format("KRW_" + coin_name, current_time_str))
+            row = cursor.fetchall()
+            if len(row) == 1:
+                coin_names[coin_name] = current_time_str
+        conn.commit()
+
     return coin_names
 
 
-def evaluate_coin_by_models(model, coin_name, right_time):
+def evaluate_coin_by_models(model, coin_name):
     upbit_data = UpbitData(coin_name)
     x = upbit_data.get_buy_for_data()
 
@@ -77,18 +81,19 @@ def evaluate_coin_by_models(model, coin_name, right_time):
 
 
 def insert_buy_coin_info(buy_try_coin_info):
-    cursor = SQL_HANDLER.conn.cursor()
+    with sqlite3.connect(sqlite3_db_filename, timeout=10, isolation_level=None, check_same_thread=False) as conn:
+        cursor = conn.cursor()
 
-    for coin_ticker_name in buy_try_coin_info:
-        cursor.execute(insert_buy_try_coin_info, (
-            coin_ticker_name,
-            buy_try_coin_info[coin_ticker_name][0],
-            buy_try_coin_info[coin_ticker_name][1],
-            buy_try_coin_info[coin_ticker_name][2],
-            buy_try_coin_info[coin_ticker_name][3],
-            CoinStatus.bought.value
-        ))
-    SQL_HANDLER.conn.commit()
+        for coin_ticker_name in buy_try_coin_info:
+            cursor.execute(insert_buy_try_coin_info, (
+                coin_ticker_name,
+                buy_try_coin_info[coin_ticker_name][0],
+                buy_try_coin_info[coin_ticker_name][1],
+                buy_try_coin_info[coin_ticker_name][2],
+                buy_try_coin_info[coin_ticker_name][3],
+                CoinStatus.bought.value
+            ))
+        conn.commit()
 
 
 def main():
