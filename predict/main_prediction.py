@@ -21,10 +21,10 @@ def reset_files(filename):
     if not os.path.exists("./{0}/".format(filename)):
         os.makedirs("./{0}/".format(filename))
 
-    files = glob.glob('./{0}/*'.format(filename))
-    for f in files:
-        if os.path.isfile(f):
-            os.remove(f)
+    # files = glob.glob('./{0}/*'.format(filename))
+    # for f in files:
+    #     if os.path.isfile(f):
+    #         os.remove(f)
 
 
 def save_graph(coin_name, valid_loss_min, last_valid_accuracy, last_save_epoch, valid_size, one_count_rate, avg_train_losses, train_accuracy_list, avg_valid_losses, valid_accuracy_list):
@@ -382,8 +382,8 @@ def main():
 
 
 if __name__ == "__main__":
-    # reset_files("models")
-    # reset_files("graphs")
-    # reset_files("models/global")
-    # reset_files("graphs/global")
+    reset_files("models")
+    reset_files("graphs")
+    reset_files("models/global")
+    reset_files("graphs/global")
     main()
