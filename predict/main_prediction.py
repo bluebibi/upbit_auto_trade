@@ -21,17 +21,17 @@ def mkdir_models():
     if not os.path.exists("./models/"):
         os.makedirs("./models/")
 
-    if not os.path.exists("./models/cnn"):
-        os.makedirs("./models/cnn")
+    if not os.path.exists("./models/CNN"):
+        os.makedirs("./models/CNN")
 
-    if not os.path.exists("./models/cnn/graphs"):
-        os.makedirs("./models/cnn/graphs")
+    if not os.path.exists("./models/CNN/graphs"):
+        os.makedirs("./models/CNN/graphs")
 
-    if not os.path.exists("./models/lstm"):
-        os.makedirs("./models/lstm")
+    if not os.path.exists("./models/LSTM"):
+        os.makedirs("./models/LSTM")
 
-    if not os.path.exists("./models/lstm/graphs"):
-        os.makedirs("./models/lstm/graphs")
+    if not os.path.exists("./models/LSTM/graphs"):
+        os.makedirs("./models/LSTM/graphs")
 
     # files = glob.glob('./{0}/*'.format(filename))
     # for f in files:
