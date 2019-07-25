@@ -80,7 +80,7 @@ def train(optimizer, model, criterion, train_losses, x_train_normalized, y_up_tr
     train_losses.append(loss.item())
 
     out = torch.sigmoid(out)
-    t = torch.Tensor([0.5])
+    t = torch.Tensor([0.5]).to(device=DEVICE)
     output_index = (out > t).float() * 1
 
     return y_up_train.size(0), (output_index == y_up_train).sum().float()
