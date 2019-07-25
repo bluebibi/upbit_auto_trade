@@ -77,7 +77,7 @@ class UpbitData:
         data = torch.from_numpy(df.values).to(DEVICE)
 
         min_max_scaler = MinMaxScaler()
-        data_normalized = min_max_scaler.fit_transform(data)
+        data_normalized = min_max_scaler.fit_transform(df.values)
         data_normalized = torch.from_numpy(data_normalized).to(DEVICE)
 
         x, x_normalized, y, y_normalized, y_up, one_rate, total_size = self.build_timeseries(
