@@ -1,6 +1,8 @@
 import glob
-import os
-import time
+
+import sys, os
+sys.path.append(os.getcwd())
+
 from common.global_variables import *
 from predict.model_cnn import CNN
 from predict.model_rnn import LSTM
@@ -10,25 +12,33 @@ from datetime import datetime
 
 
 select_by_datetime = "SELECT * FROM {0} WHERE datetime='{1}';"
+insert_buy_try_coin_info = "INSERT INTO BUY_SELL (coin_name, buy_datetime, cnn_prob, lstm_prob, buy_price, status) VALUES (?, ?, ?, ?, ?, ?);"
 
 
 def get_good_quality_coin_names_for_buy():
-    models = {}
-    files = glob.glob('./models/*')
-    for f in files:
-        if os.path.isfile(f):
-            coin_name = f.split("_")[0].replace("./models/", "")
+    cnn_models = {}
+    cnn_files = glob.glob('./predict/models/cnn/*')
 
-            if USE_CNN_MODEL:
-                model = CNN(input_width=INPUT_SIZE, input_height=WINDOW_SIZE).to(DEVICE)
-            else:
-                model = LSTM(input_size=INPUT_SIZE).to(DEVICE)
+    lstm_models = {}
+    lstm_files = glob.glob('./predict/models/lstm/*')
+
+    for f in cnn_files:
+        if os.path.isfile(f):
+            coin_name = f.split("_")[0].replace("./predict/models/cnn/", "")
+            model = CNN(input_width=INPUT_SIZE, input_height=WINDOW_SIZE).to(DEVICE)
             model.load_state_dict(torch.load(f))
             model.eval()
+            cnn_models[coin_name] = model
 
-            models[coin_name] = model
+    for f in lstm_files:
+        if os.path.isfile(f):
+            coin_name = f.split("_")[0].replace("./predict/models/lstm/", "")
+            model = LSTM(input_size=INPUT_SIZE).to(DEVICE)
+            model.load_state_dict(torch.load(f))
+            model.eval()
+            lstm_models[coin_name] = model
 
-    return models
+    return cnn_models, lstm_models
 
 
 def get_db_right_time_coin_names():
@@ -48,7 +58,7 @@ def get_db_right_time_coin_names():
     return coin_names
 
 
-def evaluate_coin_by_models(model, coin_name):
+def evaluate_coin_by_models(model, coin_name, right_time):
     upbit_data = UpbitData(coin_name)
     x = upbit_data.get_buy_for_data()
 
@@ -57,19 +67,69 @@ def evaluate_coin_by_models(model, coin_name):
     t = torch.Tensor([0.5])
     output_index = (out > t).float() * 1
 
-    print(out.item(), int(output_index.item()))
+    prob = out.item()
+    idx = int(output_index.item())
+
+    if idx and prob > 0.9:
+        return prob
+    else:
+        return -1
+
+
+def insert_buy_coin_info(buy_try_coin_info):
+    cursor = SQL_HANDLER.conn.cursor()
+
+    for coin_ticker_name in buy_try_coin_info:
+        cursor.execute(insert_buy_try_coin_info, (
+            coin_ticker_name,
+            buy_try_coin_info[coin_ticker_name][0],
+            buy_try_coin_info[coin_ticker_name][1],
+            buy_try_coin_info[coin_ticker_name][2],
+            buy_try_coin_info[coin_ticker_name][3],
+            CoinStatus.bought.value
+        ))
+    SQL_HANDLER.conn.commit()
 
 
 def main():
-    good_models = get_good_quality_coin_names_for_buy()
+    good_cnn_models, good_lstm_models = get_good_quality_coin_names_for_buy()
+
     right_time_coin_names = get_db_right_time_coin_names()
 
-    for coin_name in right_time_coin_names:
-        if coin_name in good_models:
-            print("{0:5s} - {1} - {2}".format(coin_name, right_time_coin_names[coin_name], "GOOD MODEL EXIST!!!"))
-            evaluate_coin_by_models(good_models[coin_name], coin_name)
-        else:
-            print("{0:5s} - {1} - {2}".format(coin_name, right_time_coin_names[coin_name], "NO GOOD MODEL YET"))
+    print(len(good_cnn_models), len(good_lstm_models), len(right_time_coin_names))
+
+    target_coin_names = set(good_cnn_models) and set(good_lstm_models) and set(right_time_coin_names)
+
+    if len(target_coin_names) > 0:
+        buy_try_coin_info = {}
+        buy_try_coin_names = []
+
+        for coin_name in target_coin_names:
+            cnn_prob = evaluate_coin_by_models(
+                model=good_cnn_models[coin_name],
+                coin_name=coin_name,
+                right_time=right_time_coin_names[coin_name]
+            )
+
+            lstm_prob = evaluate_coin_by_models(
+                model=good_lstm_models[coin_name],
+                coin_name=coin_name,
+                right_time=right_time_coin_names[coin_name]
+            )
+
+            if cnn_prob != -1 and lstm_prob != -1:
+                # coin_name --> right_time, prob
+                buy_try_coin_info["KRW-" + coin_name] = [right_time_coin_names[coin_name], cnn_prob, lstm_prob]
+                buy_try_coin_names.append("KRW-" + coin_name)
+
+        if buy_try_coin_names:
+            prices = UPBIT.get_current_price(buy_try_coin_names)
+
+            for coin_ticker_name in buy_try_coin_info:
+                buy_try_coin_info[coin_ticker_name].append(prices[coin_ticker_name])
+
+        if len(buy_try_coin_info) > 0:
+            insert_buy_coin_info(buy_try_coin_info)
 
 
 if __name__ == "__main__":

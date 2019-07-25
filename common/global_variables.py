@@ -3,20 +3,18 @@ from enum import Enum
 import configparser
 import torch
 
+import sys, os
+sys.path.append(os.getcwd())
+
 from db.sqlite_handler import SqliteHandler
 from upbit.slack import PushSlack
 from upbit.upbit_api import Upbit
 
 
 class CoinStatus(Enum):
-    null = -1
-    predicted = 0
-    readyset = 1
-    up_trailed = 2
-    down_trailed = 3
-    partial_sold = 4
-    sold = 5
-    ignored = 6
+    bought = 0
+    trailed = 1
+    sold = 2
 
 
 class Period(Enum):
@@ -65,7 +63,6 @@ SLACK_WEBHOOK_URL_1 = config['SLACK']['webhook_url_1']
 SLACK_WEBHOOK_URL_2 = config['SLACK']['webhook_url_2']
 
 #TRAIN
-USE_CNN_MODEL = config.getboolean('TRAIN', 'use_cnn_model')
 NUM_EPOCHS = int(config['TRAIN']['num_epochs'])
 
 #DATA
@@ -93,6 +90,3 @@ LAST_VALID_ACCURACY_THRESHOLD = float(config['EVALUATION']['last_valid_accuracy_
 LAST_SAVE_EPOCH_THRESHOLD = int(config['EVALUATION']['last_save_epoch_threshold'])
 ONE_RATE_VALID_THRESHOLD = float(config['EVALUATION']['one_rate_valid_threshold'])
 
-if __name__ == "__main__":
-    SQL_HANDLER.create_tables(UPBIT.get_all_coin_names())
-    #SQL_HANDLER.drop_tables(UPBIT.get_all_coin_names())

@@ -17,9 +17,21 @@ from common.logger import get_logger
 logger = get_logger("main_prediction")
 
 
-def reset_files(filename):
-    if not os.path.exists("./{0}/".format(filename)):
-        os.makedirs("./{0}/".format(filename))
+def mkdir_models():
+    if not os.path.exists("./models/"):
+        os.makedirs("./models/")
+
+    if not os.path.exists("./models/cnn"):
+        os.makedirs("./models/cnn")
+
+    if not os.path.exists("./models/cnn/graphs"):
+        os.makedirs("./models/cnn/graphs")
+
+    if not os.path.exists("./models/lstm"):
+        os.makedirs("./models/lstm")
+
+    if not os.path.exists("./models/lstm/graphs"):
+        os.makedirs("./models/lstm/graphs")
 
     # files = glob.glob('./{0}/*'.format(filename))
     # for f in files:
@@ -27,8 +39,8 @@ def reset_files(filename):
     #         os.remove(f)
 
 
-def save_graph(coin_name, valid_loss_min, last_valid_accuracy, last_save_epoch, valid_size, one_count_rate, avg_train_losses, train_accuracy_list, avg_valid_losses, valid_accuracy_list):
-    files = glob.glob('./graphs/{0}*'.format(coin_name))
+def save_graph(coin_name, model_type, valid_loss_min, last_valid_accuracy, last_save_epoch, valid_size, one_count_rate, avg_train_losses, train_accuracy_list, avg_valid_losses, valid_accuracy_list):
+    files = glob.glob('./models/{0}/graphs/{1}*'.format(model_type, coin_name))
     for f in files:
         os.remove(f)
 
@@ -50,21 +62,15 @@ def save_graph(coin_name, valid_loss_min, last_valid_accuracy, last_save_epoch, 
     ax_lst[1][1].set_title('VALIDATION ACCURACY CHANGE', fontweight="bold", size=10)
     ax_lst[1][1].set_xlabel('EPISODES', size=10)
 
-    if coin_name == "GLOBAL":
-        filename = "./graphs/global/{0}_{1}_{2:.2f}.png".format(
-            coin_name,
-            valid_size,
-            one_count_rate
-        )
-    else:
-        filename = "./graphs/{0}_{1}_{2:.2f}_{3:.2f}_{4}_{5:.2f}.png".format(
-            coin_name,
-            last_save_epoch,
-            valid_loss_min,
-            last_valid_accuracy,
-            valid_size,
-            one_count_rate
-        )
+    filename = "./models/{0}/graphs/{1}_{2}_{3:.2f}_{4:.2f}_{5}_{6:.2f}.png".format(
+        model_type,
+        coin_name,
+        last_save_epoch,
+        valid_loss_min,
+        last_valid_accuracy,
+        valid_size,
+        one_count_rate
+    )
 
     plt.savefig(filename)
     plt.close('all')
@@ -122,7 +128,7 @@ def post_validation_processing(valid_losses, avg_valid_losses, valid_accuracy_li
     return valid_loss, valid_accuracy
 
 
-def main():
+def main(model_type):
     start_time = time.time()
 
     coin_names_high_quality_models = []
@@ -131,36 +137,17 @@ def main():
     lr = 0.001
 
     heading_msg = "**************************\n"
-    heading_msg += "{0} Model - WINDOW SIZE:{1}, FUTURE_TARGET_SIZE:{2}, UP_RATE:{3}, TRAIN_COLS:{4}, INPUT_SIZE:{5}".format(
-        "CNN" if USE_CNN_MODEL else "LSTM",
+    heading_msg += "{0} Model - WINDOW SIZE:{1}, FUTURE_TARGET_SIZE:{2}, UP_RATE:{3}, TRAIN_COLS:{4}, INPUT_SIZE:{5}, DEVICE:{6}".format(
+        model_type,
         WINDOW_SIZE,
         FUTURE_TARGET_SIZE,
         UP_RATE,
         "ALL" if TRAIN_COLS_FULL else "OHLCV",
-        INPUT_SIZE
+        INPUT_SIZE,
+        DEVICE
     )
 
-    print(heading_msg)
-
-    if USE_CNN_MODEL:
-        global_model = CNN(input_width=INPUT_SIZE, input_height=WINDOW_SIZE).to(DEVICE)
-    else:
-        global_model = LSTM(input_size=INPUT_SIZE).to(DEVICE)
-
-    global_optimizer = torch.optim.Adam(global_model.parameters(), lr=lr)
-    global_criterion = nn.BCEWithLogitsLoss()
-
-    global_train_losses = []
-    global_valid_losses = []
-
-    global_avg_train_losses = []
-    global_avg_valid_losses = []
-
-    global_train_accuracy_list = []
-    global_valid_accuracy_list = []
-
-    global_valid_size = 0
-    global_one_rate_valid_list = []
+    print(heading_msg, flush=True)
 
     patience = 50
 
@@ -172,7 +159,7 @@ def main():
         x_train_original, x_train_normalized_original, y_train_original, y_train_normalized_original, y_up_train_original, \
         one_rate_train, train_size, \
         x_valid_original, x_valid_normalized_original, y_valid_original, y_valid_normalized_original, y_up_valid_original, \
-        one_rate_valid, valid_size = upbit_data.get_data()
+        one_rate_valid, valid_size = upbit_data.get_data(model_type=model_type)
 
         if VERBOSE:
             msg = "{0:>2} [{1:>5}] Train Size:{2:>3d}/{3:>3}[{4:.4f}], Validation Size:{5:>3d}/{6:>3}[{7:.4f}]".format(
@@ -186,15 +173,14 @@ def main():
                 one_rate_valid
             )
             logger.info(msg)
-            print(msg, end=" - ")
+            print(msg, end=" - ", flush=True)
 
-        global_valid_size += valid_size
-        global_one_rate_valid_list.append(one_rate_valid)
-
-        if USE_CNN_MODEL:
+        if model_type == "CNN":
             model = CNN(input_width=INPUT_SIZE, input_height=WINDOW_SIZE).to(DEVICE)
-        else:
+        elif model_type == "LSTM":
             model = LSTM(input_size=INPUT_SIZE).to(DEVICE)
+        else:
+            pass
 
         optimizer = torch.optim.Adam(model.parameters(), lr=lr)
         criterion = nn.BCEWithLogitsLoss()
@@ -225,9 +211,6 @@ def main():
             correct = 0.0
             total = 0.0
 
-            global_correct = 0.0
-            global_total = 0.0
-
             # training
             for x_train, x_train_normalized, y_train, y_train_normalized, y_up_train, num_batches in train_data_loader:
                 total_batch, correct_batch = train(
@@ -237,19 +220,8 @@ def main():
                 total += total_batch
                 correct += correct_batch
 
-                global_total_batch, global_correct_batch = train(
-                    global_optimizer, global_model, global_criterion, global_train_losses,
-                    x_train_normalized, y_up_train
-                )
-                global_total += global_total_batch
-                global_correct += global_correct_batch
-
             train_loss, train_accuracy = post_train_processing(
                 train_losses, avg_train_losses, train_accuracy_list, correct, total
-            )
-
-            global_train_loss, global_train_accuracy = post_train_processing(
-                global_train_losses, global_avg_train_losses, global_train_accuracy_list, global_correct, global_total
             )
 
             # validation
@@ -265,13 +237,9 @@ def main():
             )
 
             model.eval()
-            global_model.eval()
 
             correct = 0.0
             total = 0.0
-
-            global_correct = 0.0
-            global_total = 0.0
 
             for x_valid, x_valid_normalized, y_valid, y_valid_normalized, y_up_valid, num_batches in valid_data_loader:
                 total_batch, correct_batch = validate(
@@ -280,20 +248,10 @@ def main():
                 total += total_batch
                 correct += correct_batch
 
-                global_total_batch, global_correct_batch = validate(
-                    epoch, global_model, global_criterion, global_valid_losses, x_valid_normalized, y_up_valid
-                )
-                global_total += global_total_batch
-                global_correct += global_correct_batch
-
             if VERBOSE: logger.info("\n")
 
             valid_loss, valid_accuracy = post_validation_processing(
                 valid_losses, avg_valid_losses, valid_accuracy_list, correct, total
-            )
-
-            global_valid_loss, global_valid_accuracy = post_validation_processing(
-                global_valid_losses, global_avg_valid_losses, global_valid_accuracy_list, correct, total
             )
 
             print_msg = "{0} - Epoch[{1}/{2}] - \n  t_loss:{3:.6f},   t_accuracy:{4:.2f},   v_loss:{5:.6f},   v_accuracy:{6:.2f}".format(
@@ -304,13 +262,6 @@ def main():
                 train_accuracy,
                 valid_loss,
                 valid_accuracy
-            )
-
-            print_msg += "\ng_t_loss:{0:.6f}, g_t_accuracy:{1:.2f}, g_v_loss:{2:.6f}, g_v_accuracy:{3:.2f}".format(
-                global_train_loss,
-                global_train_accuracy,
-                global_valid_loss,
-                global_valid_accuracy
             )
 
             if VERBOSE: logger.info(print_msg)
@@ -338,7 +289,7 @@ def main():
             early_stopping.last_valid_accuracy,
             all(high_quality_model_condition_list)
         )
-        print(msg)
+        print(msg, flush=True)
 
         if all(high_quality_model_condition_list):
             coin_names_high_quality_models.append(coin_name)
@@ -356,22 +307,6 @@ def main():
 
             if VERBOSE: logger.info("\n")
 
-    save_graph(
-        "GLOBAL",
-        None,
-        None,
-        None,
-        global_valid_size, np.average(global_one_rate_valid_list),
-        global_avg_train_losses, global_train_accuracy_list, global_avg_valid_losses, global_valid_accuracy_list
-    )
-
-    filename = "./models/global/{0}_{1}_{2:.2f}.pt".format(
-        "GLOBAL",
-        global_valid_size,
-        np.average(global_one_rate_valid_list)
-    )
-    torch.save(global_model.state_dict(), filename)
-
     elapsed_time = time.time() - start_time
     elapsed_time_str = time.strftime("%H:%M:%S", time.gmtime(elapsed_time))
 
@@ -382,8 +317,6 @@ def main():
 
 
 if __name__ == "__main__":
-    reset_files("models")
-    reset_files("graphs")
-    reset_files("models/global")
-    reset_files("graphs/global")
-    main()
+    mkdir_models()
+    main(model_type="LSTM")
+    main(model_type="CNN")

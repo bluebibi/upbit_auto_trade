@@ -9,7 +9,7 @@ pp = pprint.PrettyPrinter(indent=2)
 
 class UpBitAPITestCase(unittest.TestCase):
     def setUp(self):
-        self.upbit = Upbit(CLIENT_ID_UPBIT, CLIENT_SECRET_UPBIT)
+        self.upbit = Upbit(CLIENT_ID_UPBIT, CLIENT_SECRET_UPBIT, fmt)
 
     def test_get_tickers(self):
         pp.pprint(self.upbit.get_tickers(fiat="KRW"))

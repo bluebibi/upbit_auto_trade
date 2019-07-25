@@ -41,7 +41,7 @@ class UpbitData:
     def __init__(self, coin_name):
         self.coin_name = coin_name
 
-    def get_buy_for_data(self):
+    def get_buy_for_data(self, model_type):
         if TRAIN_COLS_FULL:
             df = pd.read_sql_query(
                 select_all_with_btc_recent_window.format("KRW_" + self.coin_name, WINDOW_SIZE),
@@ -61,12 +61,12 @@ class UpbitData:
         x_normalized = min_max_scaler.fit_transform(df.values)
         x_normalized = torch.from_numpy(x_normalized).float().to(DEVICE)
 
-        if USE_CNN_MODEL:
+        if model_type == "CNN":
             return x_normalized.unsqueeze(dim=0).unsqueeze(dim=0)
         else:
             return x_normalized.unsqueeze(dim=0)
 
-    def get_data(self):
+    def get_data(self, model_type):
         if TRAIN_COLS_FULL:
             df = pd.read_sql_query(select_all_with_btc.format("KRW_" + self.coin_name), SQL_HANDLER.conn)
         else:
@@ -115,7 +115,7 @@ class UpbitData:
         train_size = x_train.size(0)
         valid_size = x_valid.size(0)
 
-        if USE_CNN_MODEL:
+        if model_type == "CNN":
             return x_train.unsqueeze(dim=1), x_train_normalized.unsqueeze(dim=1), y_train, y_train_normalized, y_up_train, one_rate_train, train_size,\
                    x_valid.unsqueeze(dim=1), x_valid_normalized.unsqueeze(dim=1), y_valid, y_valid_normalized, y_up_valid, one_rate_valid, valid_size
         else:

@@ -2,6 +2,7 @@ import time
 
 from common.global_variables import *
 
+
 price_insert = "INSERT INTO {0} VALUES(NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);"
 select_by_datetime = "SELECT * FROM {0} WHERE datetime='{1}';"
 
