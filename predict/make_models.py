@@ -14,7 +14,14 @@ import numpy as np
 import os
 from common.logger import get_logger
 
-logger = get_logger("main_prediction")
+logger = get_logger("main_prediction_logger")
+
+if os.getcwd().endswith("upbit_auto_trade"):
+    pass
+elif os.getcwd().endswith("predict"):
+    os.chdir("..")
+else:
+    pass
 
 
 def mkdir_models():

@@ -3,6 +3,12 @@ import sqlite3
 
 from common.global_variables import *
 
+if os.getcwd().endswith("upbit_auto_trade"):
+    pass
+elif os.getcwd().endswith("upbit"):
+    os.chdir("..")
+else:
+    pass
 
 price_insert = "INSERT INTO {0} VALUES(NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);"
 select_by_datetime = "SELECT * FROM {0} WHERE datetime='{1}';"

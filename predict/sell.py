@@ -5,6 +5,12 @@ from pytz import timezone
 
 from common.global_variables import *
 
+if os.getcwd().endswith("upbit_auto_trade"):
+    pass
+elif os.getcwd().endswith("predict"):
+    os.chdir("..")
+else:
+    pass
 
 select_all_bought_coin_names_sql = "SELECT * FROM BUY_SELL WHERE status=? or status=?;"
 update_trail_coin_info_sql = "UPDATE BUY_SELL SET trail_datetime=?, trail_price=?, trail_rate=?, status=? WHERE " \
