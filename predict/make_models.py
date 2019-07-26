@@ -14,7 +14,7 @@ import numpy as np
 import os
 from common.logger import get_logger
 
-logger = get_logger("main_prediction_logger")
+logger = get_logger("make_models_logger")
 
 if os.getcwd().endswith("upbit_auto_trade"):
     pass

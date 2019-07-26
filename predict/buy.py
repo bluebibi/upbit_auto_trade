@@ -75,7 +75,7 @@ def evaluate_coin_by_models(model, coin_name, model_type):
 
     out = model.forward(x)
     out = torch.sigmoid(out)
-    t = torch.Tensor([0.5])
+    t = torch.Tensor([0.5]).to(DEVICE)
     output_index = (out > t).float() * 1
 
     prob = out.item()
