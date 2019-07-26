@@ -150,7 +150,8 @@ def main():
 
         if len(buy_try_coin_info) > 0:
             insert_buy_coin_info(buy_try_coin_info)
-
+            SLACK.send_message("me", buy_try_coin_info)
+            
 
 if __name__ == "__main__":
     main()
