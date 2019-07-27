@@ -176,6 +176,11 @@ def main():
             msg_str = insert_buy_coin_info(buy_try_coin_info)
             SLACK.send_message("me", msg_str)
 
+            now = dt.datetime.now(timezone('Asia/Seoul'))
+            now_str = now.strftime(fmt)
+            current_time_str = now_str.replace("T", " ")
+            print(current_time_str, msg_str)
+
 
 if __name__ == "__main__":
     main()
