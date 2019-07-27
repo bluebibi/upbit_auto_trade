@@ -60,7 +60,7 @@ def buy_sell_tables():
                 row[5],
                 row[7],
                 row[6],
-                convert_unit_4(row[8] * 100),
+                convert_unit_2(row[8] * 100),
                 coin_status_to_hangul(row[9])
             )
             txt += "</tr>"
