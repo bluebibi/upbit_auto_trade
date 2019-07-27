@@ -15,3 +15,10 @@ def convert_unit_2(unit):
         unit = float(unit)
     converted_unit = math.floor(unit * 100) / 100
     return converted_unit
+
+
+def convert_unit_4(unit):
+    if not isinstance(unit, float):
+        unit = float(unit)
+    converted_unit = math.floor(unit * 10000) / 10000
+    return converted_unit

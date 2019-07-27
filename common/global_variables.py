@@ -64,6 +64,9 @@ TELEGRAM_APP_TITLE = config['TELEGRAM']['app_title']
 SLACK_WEBHOOK_URL_1 = config['SLACK']['webhook_url_1']
 SLACK_WEBHOOK_URL_2 = config['SLACK']['webhook_url_2']
 
+#GOOGLE
+GOOGLE_APP_PASSWORD = config['GOOGLE']['app_password']
+
 #TRAIN
 NUM_EPOCHS = int(config['TRAIN']['num_epochs'])
 
