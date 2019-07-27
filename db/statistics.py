@@ -34,10 +34,9 @@ def buy_sell_tables():
         total_rate = 0.0
         num = 0
         num_success = 0
-        num_trail = 0
+        num_trail_bought = 0
         num_gain = 0
         num_loss = 0
-        num_bought = 0
         for row in rows:
             num += 1
             if row[9] == CoinStatus.success_sold.value:
@@ -47,9 +46,9 @@ def buy_sell_tables():
             elif row[9] == CoinStatus.loss_sold.value:
                 num_loss += 1
             elif row[9] == CoinStatus.trailed.value:
-                num_trail += 1
+                num_trail_bought += 1
             elif row[9] == CoinStatus.bought.value:
-                num_bought += 1
+                num_trail_bought += 1
 
             total_rate += float(row[8])
             txt += "<tr>"
@@ -66,7 +65,7 @@ def buy_sell_tables():
             )
             txt += "</tr>"
 
-    return txt, convert_unit_2(total_rate * 100), num, num_bought, num_trail, num_success, num_gain, num_loss
+    return txt, convert_unit_2(total_rate * 100), num, num_trail_bought, num_success, num_gain, num_loss
 
 
 def main():
@@ -74,17 +73,16 @@ def main():
     s.starttls()
     s.login('yh21.han@gmail.com', GOOGLE_APP_PASSWORD)
 
-    buy_sell_text, total_rate, num, num_bought, num_trail, num_success, num_gain, num_loss = buy_sell_tables()
+    buy_sell_text, total_rate, num, num_trail_bought, num_success, num_gain, num_loss = buy_sell_tables()
 
     html_data = render_template(
         buy_sell_text=buy_sell_text,
         total_rate=total_rate,
         num=num,
-        num_bought=num_bought,
+        num_trail_bought=num_trail_bought,
         num_success=num_success,
         num_gain=num_gain,
-        num_loss=num_loss,
-        num_trail=num_trail
+        num_loss=num_loss
     )
 
     msg = MIMEText(html_data, _subtype="html", _charset="utf-8")
