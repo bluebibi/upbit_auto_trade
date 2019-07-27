@@ -14,6 +14,8 @@ elif os.getcwd().endswith("db"):
 else:
     pass
 
+locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
+
 select_all_buy_sell_sql = "SELECT * FROM BUY_SELL ORDER BY id DESC;"
 
 select_one_record_KRW_BTC_sql = "SELECT datetime FROM KRW_BTC ORDER BY id DESC LIMIT 1;"
