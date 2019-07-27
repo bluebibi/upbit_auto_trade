@@ -1,3 +1,4 @@
+import glob
 import locale
 import smtplib
 import sqlite3
@@ -7,12 +8,10 @@ from email.mime.text import MIMEText
 from common.global_variables import *
 from common.utils import *
 
-if os.getcwd().endswith("upbit_auto_trade"):
-    pass
-elif os.getcwd().endswith("db"):
+import datetime as dt
+
+if os.getcwd().endswith("db"):
     os.chdir("..")
-else:
-    pass
 
 locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
 
@@ -28,6 +27,77 @@ def render_template(**kwargs):
     templateEnv = jinja2.Environment(loader=templateLoader)
     templ = templateEnv.get_template("email.html")
     return templ.render(**kwargs)
+
+
+def get_model_status():
+    coin_names = UPBIT.get_all_coin_names()
+
+    cnn_model_files = glob.glob(PROJECT_HOME + 'models/CNN/*.pt')
+    cnn_models = {}
+    for cnn_file in cnn_model_files:
+        cnn_file_name = cnn_file.split("/")[-1].split("_")
+        coin_name = cnn_file_name[0]
+        cnn_models[coin_name] = {
+            "saved_epoch": int(cnn_file_name[1]),
+            "valid_loss_min": float(cnn_file_name[2]),
+            "valid_accuracy": float(cnn_file_name[3]),
+            "valid_data_size": int(cnn_file_name[4]),
+            "valid_one_data_rate": float(cnn_file_name[5].replace(".pt", "")),
+            "last_modified": dt.datetime.fromtimestamp(os.stat(cnn_file).st_mtime).strftime(fmt.replace("T", " "))[:-3]
+        }
+
+    lstm_model_files = glob.glob(PROJECT_HOME + 'models/LSTM/*.pt')
+    lstm_models = {}
+    for lstm_file in lstm_model_files:
+        lstm_file_name = lstm_file.split("/")[-1].split("_")
+        coin_name = lstm_file_name[0]
+        lstm_models[coin_name] = {
+            "saved_epoch": int(lstm_file_name[1]),
+            "valid_loss_min": float(lstm_file_name[2]),
+            "valid_accuracy": float(lstm_file_name[3]),
+            "valid_data_size": int(lstm_file_name[4]),
+            "valid_one_data_rate": float(lstm_file_name[5].replace(".pt", "")),
+            "last_modified": dt.datetime.fromtimestamp(os.stat(lstm_file).st_mtime).strftime(fmt.replace("T", " "))[:-3]
+        }
+
+    txt = "<tr><th>코인 이름</th><th>CNN 모델 정보</th><th>모델 구성</th><th>LSTM 모델 정</th><th>모델 구성</th></tr>"
+    for coin_name in coin_names:
+        txt += "<tr>"
+
+        if coin_name in cnn_models:
+            cnn_info = "{0} : {1} : {2} : {3} : {4}".format(
+                cnn_models[coin_name]["saved_epoch"],
+                cnn_models[coin_name]["valid_loss_min"],
+                cnn_models[coin_name]["valid_accuracy"],
+                cnn_models[coin_name]["valid_data_size"],
+                cnn_models[coin_name]["valid_one_data_rate"]
+            )
+            cnn_model_last_modified = cnn_models[coin_name]["last_modified"]
+        else:
+            cnn_info = "-"
+            cnn_model_last_modified = "-"
+
+        if coin_name in lstm_models:
+            lstm_info = "{0} : {1} : {2} : {3} : {4}".format(
+                lstm_models[coin_name]["saved_epoch"],
+                lstm_models[coin_name]["valid_loss_min"],
+                lstm_models[coin_name]["valid_accuracy"],
+                lstm_models[coin_name]["valid_data_size"],
+                lstm_models[coin_name]["valid_one_data_rate"]
+            )
+            lstm_model_last_modified = lstm_models[coin_name]["last_modified"]
+        else:
+            lstm_info = "-"
+            lstm_model_last_modified = "-"
+
+        txt += "<td>{0}</td><td>{1}</td><td>{2}</td><td>{3}</td><td>{4}</td>".format(
+            coin_name,
+            cnn_info,
+            cnn_model_last_modified,
+            lstm_info,
+            lstm_model_last_modified
+        )
+    return txt
 
 
 def get_KRW_BTC_info():
@@ -104,6 +174,8 @@ def main():
 
     last_krw_btc_datetime, num_krw_btc_records = get_KRW_BTC_info()
 
+    model_status = get_model_status()
+
     html_data = render_template(
         buy_sell_text=buy_sell_text,
         total_rate=total_rate,
@@ -113,11 +185,12 @@ def main():
         num_gain=num_gain,
         num_loss=num_loss,
         last_krw_btc_datetime=last_krw_btc_datetime,
-        num_krw_btc_records=num_krw_btc_records
+        num_krw_btc_records=num_krw_btc_records,
+        model_status=model_status
     )
 
     msg = MIMEText(html_data, _subtype="html", _charset="utf-8")
-    msg['Subject'] = 'Statistics'
+    msg['Subject'] = 'Statistics From ' + SOURCE
 
     s.sendmail("yh21.han@gmail.com", "yh21.han@gmail.com", msg.as_string())
 

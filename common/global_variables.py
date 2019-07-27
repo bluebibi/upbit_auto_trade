@@ -10,6 +10,9 @@ from db.sqlite_handler import SqliteHandler
 from upbit.slack import PushSlack
 from upbit.upbit_api import Upbit
 
+idx = os.getcwd().index("upbit_auto_trade")
+PROJECT_HOME = os.getcwd()[:idx] + "upbit_auto_trade/"
+
 
 class CoinStatus(Enum):
     bought = 0

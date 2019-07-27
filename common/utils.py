@@ -9,10 +9,6 @@ import numpy as np
 
 from common.global_variables import CoinStatus, fmt
 
-idx = os.getcwd().index("upbit_auto_trade")
-PROJECT_HOME = os.getcwd()[:idx] + "upbit_auto_trade/"
-sys.path.append(PROJECT_HOME)
-
 
 def convert_unit_2(unit):
     if unit:
