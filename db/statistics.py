@@ -184,7 +184,7 @@ def buy_sell_tables():
 
         txt += "<td>{0}</td><td>{1}</td><td>{2} | {3}</td><td>{4}</td><td>{5}</td><td>{6}</td><td>{7}%</td><td>{8}</td>".format(
             row[2].replace(":00", ""),
-            row[1],
+            "<a href='https://upbit.com/exchange?code=CRIX.UPBIT.{0}'>{0}</a>".format(row[1]),
             convert_unit_2(row[3]),
             convert_unit_2(row[4]),
             locale.format_string("%.2f", row[5], grouping=True),
