@@ -110,7 +110,7 @@ def get_model_status():
             lstm_model_last_modified = "-"
 
         if coin_name in cnn_models and coin_name in lstm_models:
-            coin_name = "<strong>{0}</strong>".format(coin_name)
+            coin_name = "<span style='color:#FF0000'><strong>{0}</strong></span>".format(coin_name)
             num_both_models += 1
 
         txt += "<td>{0}</td><td>{1}</td><td>{2}</td><td>{3}</td><td>{4}</td>".format(
@@ -172,6 +172,16 @@ def buy_sell_tables():
 
         total_rate += float(row[8])
         txt += "<tr>"
+
+        coin_status = coin_status_to_hangul(row[9])
+
+        if row[9] == CoinStatus.success_sold.value:
+            coin_status = "<span style='color:#FF0000'><strong>{0}</strong></span>".format(coin_status)
+        elif row[9] == CoinStatus.gain_sold.value:
+            coin_status = "<span style='color:#FF8868'><strong>{0}</strong></span>".format(coin_status)
+        elif row[9] == CoinStatus.loss_sold.value:
+            coin_status = "<span style='color:#92B3B7'>{0}</span>".format(coin_status)
+
         txt += "<td>{0}</td><td>{1}</td><td>{2} | {3}</td><td>{4}</td><td>{5}</td><td>{6}</td><td>{7}%</td><td>{8}</td>".format(
             row[2].replace(":00", ""),
             row[1],
@@ -181,7 +191,7 @@ def buy_sell_tables():
             locale.format_string("%.2f", row[7], grouping=True),
             elapsed_time_str(row[2], row[6]),
             convert_unit_2(row[8] * 100),
-            coin_status_to_hangul(row[9])
+            coin_status
         )
         txt += "</tr>"
 
