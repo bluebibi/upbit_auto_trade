@@ -46,7 +46,9 @@ def select_all_bought_coin_names():
         conn.commit()
 
     now = dt.datetime.now(timezone('Asia/Seoul'))
-    now_str = now.strftime(fmt.replace("T", " "))
+    now_str = now.strftime(fmt)
+    current_time_str = now_str.replace("T", " ")
+    now_datetime = dt.datetime.strptime(now_str, fmt)
 
     msg_str = ""
     if buy_trail_coin_names:
@@ -57,7 +59,7 @@ def select_all_bought_coin_names():
             trail_rate = trail_price / buy_trail_coin_info[coin_ticker_name]["buy_price"] - 1.0
 
             buy_datetime = buy_trail_coin_info[coin_ticker_name]["buy_datetime"]
-            time_diff = now - buy_datetime
+            time_diff = now_datetime - buy_datetime
             time_diff_minutes = time_diff.seconds / 60
 
             if trail_rate > SELL_RATE:
@@ -72,7 +74,7 @@ def select_all_bought_coin_names():
                     coin_status = CoinStatus.trailed.value
 
             trail_coin_info[coin_ticker_name] = {
-                "trail_datetime": now_str,
+                "trail_datetime": current_time_str,
                 "trail_price": trail_price,
                 "trail_rate": trail_rate,
                 "status": coin_status,
