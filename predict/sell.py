@@ -80,10 +80,10 @@ def select_all_bought_coin_names():
             }
 
             if coin_status == CoinStatus.success_sold.value or coin_status == CoinStatus.gain_sold.value:
-                msg_str += "[{0}, {1}, {2}, {3}]\n".format(
+                msg_str += "[{0}, {1}, {2}%, {3}]\n".format(
                     coin_ticker_name,
                     trail_price,
-                    convert_unit_2(trail_rate) + "%",
+                    convert_unit_2(trail_rate),
                     coin_status_to_hangul(coin_status)
                 )
 
