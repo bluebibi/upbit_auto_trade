@@ -13,17 +13,23 @@ sys.path.append(PROJECT_HOME)
 
 
 def convert_unit_2(unit):
-    if not isinstance(unit, float):
-        unit = float(unit)
-    converted_unit = math.floor(unit * 100) / 100
-    return converted_unit
+    if unit:
+        if not isinstance(unit, float):
+            unit = float(unit)
+        converted_unit = math.floor(unit * 100) / 100
+        return converted_unit
+    else:
+        return unit
 
 
 def convert_unit_4(unit):
-    if not isinstance(unit, float):
-        unit = float(unit)
-    converted_unit = math.floor(unit * 10000) / 10000
-    return converted_unit
+    if unit:
+        if not isinstance(unit, float):
+            unit = float(unit)
+        converted_unit = math.floor(unit * 10000) / 10000
+        return converted_unit
+    else:
+        return unit
 
 
 def coin_status_to_hangul(status):
