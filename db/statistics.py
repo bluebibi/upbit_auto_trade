@@ -5,6 +5,9 @@ import sqlite3
 import jinja2
 
 from email.mime.text import MIMEText
+
+from pytz import timezone
+
 from common.global_variables import *
 from common.utils import *
 
@@ -20,6 +23,9 @@ select_all_buy_sell_sql = "SELECT * FROM BUY_SELL ORDER BY id DESC;"
 select_one_record_KRW_BTC_sql = "SELECT datetime FROM KRW_BTC ORDER BY id DESC LIMIT 1;"
 
 count_rows_KRW_BTC_sql = "SELECT * FROM KRW_BTC ORDER BY id DESC LIMIT 1;"
+
+now = dt.datetime.now(timezone('Asia/Seoul'))
+now_str = now.strftime(fmt.replace("T", " "))
 
 
 def render_template(**kwargs):
@@ -37,13 +43,19 @@ def get_model_status():
     for cnn_file in cnn_model_files:
         cnn_file_name = cnn_file.split("/")[-1].split("_")
         coin_name = cnn_file_name[0]
+
+        time_diff = elapsed_time_str(
+            dt.datetime.fromtimestamp(os.stat(cnn_file).st_mtime).strftime(fmt.replace("T", " ")),
+            now_str
+        )
+
         cnn_models[coin_name] = {
             "saved_epoch": int(cnn_file_name[1]),
             "valid_loss_min": float(cnn_file_name[2]),
             "valid_accuracy": float(cnn_file_name[3]),
             "valid_data_size": int(cnn_file_name[4]),
             "valid_one_data_rate": float(cnn_file_name[5].replace(".pt", "")),
-            "last_modified": dt.datetime.fromtimestamp(os.stat(cnn_file).st_mtime).strftime(fmt.replace("T", " "))[:-3]
+            "last_modified": time_diff
         }
 
     lstm_model_files = glob.glob(PROJECT_HOME + 'models/LSTM/*.pt')
@@ -51,13 +63,19 @@ def get_model_status():
     for lstm_file in lstm_model_files:
         lstm_file_name = lstm_file.split("/")[-1].split("_")
         coin_name = lstm_file_name[0]
+
+        time_diff = elapsed_time_str(
+            dt.datetime.fromtimestamp(os.stat(lstm_file).st_mtime).strftime(fmt.replace("T", " ")),
+            now_str
+        )
+
         lstm_models[coin_name] = {
             "saved_epoch": int(lstm_file_name[1]),
             "valid_loss_min": float(lstm_file_name[2]),
             "valid_accuracy": float(lstm_file_name[3]),
             "valid_data_size": int(lstm_file_name[4]),
             "valid_one_data_rate": float(lstm_file_name[5].replace(".pt", "")),
-            "last_modified": dt.datetime.fromtimestamp(os.stat(lstm_file).st_mtime).strftime(fmt.replace("T", " "))[:-3]
+            "last_modified": time_diff
         }
 
     txt = "<tr><th>코인 이름</th><th>CNN 모델 정보</th><th>모델 구성</th><th>LSTM 모델 정</th><th>모델 구성</th></tr>"
