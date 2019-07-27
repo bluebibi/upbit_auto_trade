@@ -32,9 +32,9 @@ def get_coin_ticker_name_by_status():
         rows = cursor.execute(select_coin_ticker_name_by_status_sql)
 
         for coin_ticker_name in rows:
-            coin_ticker_name_list.append(coin_ticker_name)
+            coin_ticker_name_list.append(coin_ticker_name[0].replace("KRW-", ""))
         conn.commit()
-    return coin_ticker_name
+    return coin_ticker_name_list
 
 
 def get_good_quality_coin_names_for_buy():
