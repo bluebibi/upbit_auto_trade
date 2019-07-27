@@ -112,6 +112,8 @@ def main():
     msg_str = select_all_bought_coin_names()
 
     if msg_str:
+        msg_str += " @ " + SOURCE
+
         SLACK.send_message("me", msg_str)
         now = dt.datetime.now(timezone('Asia/Seoul'))
         now_str = now.strftime(fmt)

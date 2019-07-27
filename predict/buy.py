@@ -174,6 +174,7 @@ def main():
 
         if len(buy_try_coin_info) > 0:
             msg_str = insert_buy_coin_info(buy_try_coin_info)
+            msg_str += " @ " + SOURCE
             SLACK.send_message("me", msg_str)
 
             now = dt.datetime.now(timezone('Asia/Seoul'))
