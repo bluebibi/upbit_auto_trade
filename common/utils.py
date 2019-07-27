@@ -1,11 +1,13 @@
 import math
 import sys, os
+import datetime as dt
+
 import time
 from datetime import datetime, timedelta, date
 import pickle
 import numpy as np
 
-from common.global_variables import CoinStatus
+from common.global_variables import CoinStatus, fmt
 
 idx = os.getcwd().index("upbit_auto_trade")
 PROJECT_HOME = os.getcwd()[:idx] + "upbit_auto_trade/"
@@ -45,3 +47,12 @@ def coin_status_to_hangul(status):
         status = "손실 매도"
 
     return status
+
+
+def elapsed_time_str(from_datetime, to_datetime):
+    from_datetime = dt.datetime.strptime(from_datetime, fmt.replace("T", " "))
+    to_datetime = dt.datetime.strptime(to_datetime, fmt.replace("T", " "))
+    time_diff = to_datetime - from_datetime
+    time_diff_hours = int(time_diff.seconds / 3600)
+    time_diff_minutes = int((time_diff.seconds - time_diff_hours * 3600) / 60)
+    return "{:0>2d}:{:0>2d}".format(time_diff_hours, time_diff_minutes)

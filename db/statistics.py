@@ -30,7 +30,7 @@ def buy_sell_tables():
         rows = cursor.execute(select_all_buy_sell_sql)
 
         txt = "<tr><th>매수 기준 날짜/시각</th><th>구매 코인</th><th>모델 확신도<br/>(CNN | LSTM)</th><th>구매 가격</th>"
-        txt += "<th>현재 가격</th><th>날짜/시각</th><th>등락 비율</th><th>상태</th></tr>"
+        txt += "<th>현재 가격</th><th>경과 시간</th><th>등락 비율</th><th>상태</th></tr>"
         total_rate = 0.0
         num = 0
         num_success = 0
@@ -59,7 +59,7 @@ def buy_sell_tables():
                 convert_unit_2(row[4]),
                 row[5],
                 row[7],
-                row[6],
+                elapsed_time_str(row[6], row[2]),
                 convert_unit_2(row[8] * 100),
                 coin_status_to_hangul(row[9])
             )
