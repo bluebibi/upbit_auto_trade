@@ -84,8 +84,8 @@ def buy_sell_tables():
             row[1],
             convert_unit_2(row[3]),
             convert_unit_2(row[4]),
-            locale.format_string("%d", row[5], grouping=True),
-            locale.format_string("%d", row[7], grouping=True),
+            locale.format_string("%.2f", row[5], grouping=True),
+            locale.format_string("%.2f", row[7], grouping=True),
             elapsed_time_str(row[2], row[6]),
             convert_unit_2(row[8] * 100),
             coin_status_to_hangul(row[9])
