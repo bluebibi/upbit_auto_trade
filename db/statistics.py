@@ -78,7 +78,7 @@ def get_model_status():
             "last_modified": time_diff
         }
 
-    txt = "<tr><th>코인 이름</th><th>CNN 모델 정보</th><th>모델 구성</th><th>LSTM 모델 정</th><th>모델 구성</th></tr>"
+    txt = "<tr><th>코인 이름</th><th>CNN 모델 정보</th><th>모델 구성</th><th>LSTM 모델 정보</th><th>모델 구성</th></tr>"
     num_both_models = 0
     for coin_name in coin_names:
         txt += "<tr>"
