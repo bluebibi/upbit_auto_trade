@@ -28,22 +28,22 @@ def select_all_bought_coin_names():
         buy_trail_coin_info = {}
         buy_trail_coin_names = []
         rows = cursor.fetchall()
-        for row in rows:
-            coin_ticker_name = row[1]
-            buy_datetime = dt.datetime.strptime(row[2], fmt.replace("T", " "))
-            cnn_prob = float(row[3])
-            lstm_prob = float(row[4])
-            buy_price = float(row[5])
-            buy_trail_coin_info[coin_ticker_name] = {
-                "buy_datetime_str": row[2],
-                "buy_datetime": buy_datetime,
-                "cnn_prob": cnn_prob,
-                "lstm_prob": lstm_prob,
-                "buy_price": buy_price
-            }
-            buy_trail_coin_names.append(coin_ticker_name)
-
         conn.commit()
+
+    for row in rows:
+        coin_ticker_name = row[1]
+        buy_datetime = dt.datetime.strptime(row[2], fmt.replace("T", " "))
+        cnn_prob = float(row[3])
+        lstm_prob = float(row[4])
+        buy_price = float(row[5])
+        buy_trail_coin_info[coin_ticker_name] = {
+            "buy_datetime_str": row[2],
+            "buy_datetime": buy_datetime,
+            "cnn_prob": cnn_prob,
+            "lstm_prob": lstm_prob,
+            "buy_price": buy_price
+        }
+        buy_trail_coin_names.append(coin_ticker_name)
 
     now = dt.datetime.now(timezone('Asia/Seoul'))
     now_str = now.strftime(fmt)
@@ -56,7 +56,8 @@ def select_all_bought_coin_names():
         trail_coin_info = {}
         for coin_ticker_name in buy_trail_coin_info:
             trail_price = float(prices[coin_ticker_name])
-            trail_rate = trail_price / buy_trail_coin_info[coin_ticker_name]["buy_price"] - 1.0
+            buy_price = buy_trail_coin_info[coin_ticker_name]["buy_price"]
+            trail_rate = (trail_price - buy_price) / buy_price
 
             buy_datetime = buy_trail_coin_info[coin_ticker_name]["buy_datetime"]
             time_diff = now_datetime - buy_datetime
@@ -101,7 +102,7 @@ def update_coin_info(trail_coin_info):
             cursor.execute(update_trail_coin_info_sql, (
                 trail_coin_info[coin_ticker_name]["trail_datetime"],
                 trail_coin_info[coin_ticker_name]["trail_price"],
-                convert_unit_2(trail_coin_info[coin_ticker_name]["trail_rate"]),
+                trail_coin_info[coin_ticker_name]["trail_rate"],
                 trail_coin_info[coin_ticker_name]["status"],
                 coin_ticker_name,
                 trail_coin_info[coin_ticker_name]["buy_datetime"]
