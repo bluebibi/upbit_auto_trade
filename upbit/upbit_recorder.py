@@ -105,8 +105,8 @@ if __name__ == "__main__":
     for coin_name in upbit_recorder.coin_names:
         upbit_recorder.remove_duplicated_datetime(coin_name)
 
-    msg = "Number of new upbit records: {0} @ {1}".format(total_new_records, SOURCE)
-    SLACK.send_message("me", msg)
+    # msg = "Number of new upbit records: {0} @ {1}".format(total_new_records, SOURCE)
+    # SLACK.send_message("me", msg)
 
 
 
