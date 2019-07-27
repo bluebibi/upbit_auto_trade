@@ -53,13 +53,13 @@ def buy_sell_tables():
             total_rate += float(row[8])
             txt += "<tr>"
             txt += "<td>{0}</td><td>{1}</td><td>{2} | {3}</td><td>{4}</td><td>{5}</td><td>{6}</td><td>{7}%</td><td>{8}</td>".format(
-                row[2],
+                row[2].replace(":00", ""),
                 row[1],
                 convert_unit_2(row[3]),
                 convert_unit_2(row[4]),
                 row[5],
                 row[7],
-                elapsed_time_str(row[6], row[2]),
+                elapsed_time_str(row[2], row[6]),
                 convert_unit_2(row[8] * 100),
                 coin_status_to_hangul(row[9])
             )
