@@ -31,7 +31,9 @@ def buy_sell_tables():
 
         txt = "<tr><th>매수 날짜/시각</th><th>구매 코인</th><th>CNN 확신도</th><th>LSTM 확신도</th><th>구매 가격</th>"
         txt += "<th>현재 가격</th><th>날짜/시각</th><th>등락 비율</th><th>상태</th></tr>"
+        total_rate = 0.0
         for row in rows:
+            total_rate += float(row[8])
             txt += "<tr>"
             txt += "<td>{0}</td><td>{1}</td><td>{2}</td><td>{3}</td><td>{4}</td><td>{5}</td><td>{6}</td><td>{7}</td><td>{8}</td>".format(
                 row[2],
@@ -46,7 +48,7 @@ def buy_sell_tables():
             )
             txt += "</tr>"
 
-    return txt
+    return txt, convert_unit_4(total_rate)
 
 
 def main():
@@ -54,9 +56,9 @@ def main():
     s.starttls()
     s.login('yh21.han@gmail.com', GOOGLE_APP_PASSWORD)
 
-    buy_sell_text = buy_sell_tables()
+    buy_sell_text, total_rate = buy_sell_tables()
 
-    html_data = render_template(buy_sell_text=buy_sell_text)
+    html_data = render_template(buy_sell_text=buy_sell_text, total_rate=total_rate)
 
     msg = MIMEText(html_data, _subtype="html", _charset="utf-8")
     msg['Subject'] = 'Statistics'
