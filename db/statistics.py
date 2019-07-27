@@ -1,3 +1,4 @@
+import locale
 import smtplib
 import sqlite3
 import jinja2
@@ -18,6 +19,7 @@ select_all_buy_sell_sql = "SELECT * FROM BUY_SELL ORDER BY id DESC;"
 select_one_record_KRW_BTC_sql = "SELECT datetime FROM KRW_BTC ORDER BY id DESC LIMIT 1;"
 
 count_rows_KRW_BTC_sql = "SELECT * FROM KRW_BTC ORDER BY id DESC LIMIT 1;"
+
 
 def render_template(**kwargs):
     templateLoader = jinja2.FileSystemLoader(searchpath="db")
@@ -40,7 +42,7 @@ def get_KRW_BTC_info():
             num_krw_btc_records = row[0]
         conn.commit()
 
-    return last_krw_btc_datetime, num_krw_btc_records
+    return last_krw_btc_datetime, locale.format_string("%d", num_krw_btc_records, grouping=True)
 
 
 def buy_sell_tables():
@@ -80,8 +82,8 @@ def buy_sell_tables():
             row[1],
             convert_unit_2(row[3]),
             convert_unit_2(row[4]),
-            row[5],
-            row[7],
+            locale.format_string("%d", row[5], grouping=True),
+            locale.format_string("%d", row[7], grouping=True),
             elapsed_time_str(row[2], row[6]),
             convert_unit_2(row[8] * 100),
             coin_status_to_hangul(row[9])
