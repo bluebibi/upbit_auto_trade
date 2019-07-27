@@ -4,6 +4,7 @@ import sqlite3
 from pytz import timezone
 
 from common.global_variables import *
+from common.utils import *
 
 if os.getcwd().endswith("upbit_auto_trade"):
     pass
@@ -100,7 +101,7 @@ def update_coin_info(trail_coin_info):
             cursor.execute(update_trail_coin_info_sql, (
                 trail_coin_info[coin_ticker_name]["trail_datetime"],
                 trail_coin_info[coin_ticker_name]["trail_price"],
-                trail_coin_info[coin_ticker_name]["trail_rate"],
+                convert_unit_2(trail_coin_info[coin_ticker_name]["trail_rate"]),
                 trail_coin_info[coin_ticker_name]["status"],
                 coin_ticker_name,
                 trail_coin_info[coin_ticker_name]["buy_datetime"]
@@ -112,7 +113,7 @@ def main():
     msg_str = select_all_bought_coin_names()
 
     if msg_str:
-        msg_str += " @ " + SOURCE
+        msg_str = "*** SELL\n" + msg_str + " @ " + SOURCE
 
         SLACK.send_message("me", msg_str)
         now = dt.datetime.now(timezone('Asia/Seoul'))

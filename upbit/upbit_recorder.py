@@ -1,6 +1,10 @@
 import time
 import sqlite3
 
+import datetime as dt
+
+from pytz import timezone
+
 from common.global_variables import *
 
 if os.getcwd().endswith("upbit_auto_trade"):

@@ -10,7 +10,7 @@ from predict.model_rnn import LSTM
 from upbit.upbit_data import UpbitData
 from pytz import timezone
 import datetime as dt
-import os
+from common.utils import *
 
 if os.getcwd().endswith("upbit_auto_trade"):
     pass
@@ -102,7 +102,7 @@ def evaluate_coin_by_models(model, coin_name, model_type):
 
 
 def insert_buy_coin_info(buy_try_coin_info):
-    msg_str = "BUY\n"
+    msg_str = "*** BUY\n"
     with sqlite3.connect(sqlite3_db_filename, timeout=10, isolation_level=None, check_same_thread=False) as conn:
         cursor = conn.cursor()
 
@@ -110,16 +110,16 @@ def insert_buy_coin_info(buy_try_coin_info):
             cursor.execute(insert_buy_try_coin_info, (
                 coin_ticker_name,
                 buy_try_coin_info[coin_ticker_name]["right_time"],
-                float(buy_try_coin_info[coin_ticker_name]["cnn_prob"]),
-                float(buy_try_coin_info[coin_ticker_name]["lstm_prob"]),
+                convert_unit_2(float(buy_try_coin_info[coin_ticker_name]["cnn_prob"])),
+                convert_unit_2(float(buy_try_coin_info[coin_ticker_name]["lstm_prob"])),
                 float(buy_try_coin_info[coin_ticker_name]["buy_price"]),
                 CoinStatus.bought.value
             ))
             msg_str += "[{0}, {1}, {2}, {3}, {4}, {5}]\n".format(
                 coin_ticker_name,
                 buy_try_coin_info[coin_ticker_name]["right_time"],
-                float(buy_try_coin_info[coin_ticker_name]["cnn_prob"]),
-                float(buy_try_coin_info[coin_ticker_name]["lstm_prob"]),
+                convert_unit_2(float(buy_try_coin_info[coin_ticker_name]["cnn_prob"])),
+                convert_unit_2(float(buy_try_coin_info[coin_ticker_name]["lstm_prob"])),
                 float(buy_try_coin_info[coin_ticker_name]["buy_price"]),
                 CoinStatus.bought.value
             )
