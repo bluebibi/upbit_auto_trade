@@ -85,8 +85,8 @@ def select_all_bought_coin_names():
                 msg_str += "[{0}, {1}, {2}, {3}]\n".format(
                     coin_ticker_name,
                     trail_price,
-                    trail_rate,
-                    coin_status
+                    convert_unit_2(trail_rate) + "%",
+                    coin_status_to_hangul(coin_status)
                 )
 
         update_coin_info(trail_coin_info)

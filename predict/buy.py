@@ -1,4 +1,5 @@
 import glob
+import locale
 import sqlite3
 
 import sys, os
@@ -18,6 +19,8 @@ elif os.getcwd().endswith("predict"):
     os.chdir("..")
 else:
     pass
+
+locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
 
 select_coin_ticker_name_by_status_sql = "SELECT coin_ticker_name FROM BUY_SELL WHERE status=0 or status=1;"
 select_by_datetime = "SELECT * FROM {0} WHERE datetime='{1}';"
@@ -120,8 +123,8 @@ def insert_buy_coin_info(buy_try_coin_info):
                 buy_try_coin_info[coin_ticker_name]["right_time"],
                 convert_unit_2(float(buy_try_coin_info[coin_ticker_name]["cnn_prob"])),
                 convert_unit_2(float(buy_try_coin_info[coin_ticker_name]["lstm_prob"])),
-                float(buy_try_coin_info[coin_ticker_name]["buy_price"]),
-                CoinStatus.bought.value
+                locale.format_string("%.2f", float(buy_try_coin_info[coin_ticker_name]["buy_price"]), grouping=True),
+                coin_status_to_hangul(CoinStatus.bought.value)
             )
         conn.commit()
     return msg_str
