@@ -28,28 +28,28 @@ def select_all_bought_coin_names():
         buy_coin_names = []
         rows = cursor.fetchall()
         for row in rows:
-            coin_name = row[0]
-            buy_datetime = dt.datetime.strptime(row[1], fmt.replace("T", " "))
-            cnn_prob = float(row[2])
-            lstm_prob = float(row[3])
-            buy_price = float(row[4])
-            buy_trail_coin_info["KRW-"+coin_name] = {
-                "buy_datetime_str": row[1],
+            coin_ticker_name = row[1]
+            buy_datetime = dt.datetime.strptime(row[2], fmt.replace("T", " "))
+            cnn_prob = float(row[3])
+            lstm_prob = float(row[4])
+            buy_price = float(row[5])
+            buy_trail_coin_info[coin_ticker_name] = {
+                "buy_datetime_str": row[2],
                 "buy_datetime": buy_datetime,
                 "cnn_prob": cnn_prob,
                 "lstm_prob": lstm_prob,
                 "buy_price": buy_price
             }
-            buy_coin_names.append("KRW-"+coin_name)
+            buy_coin_names.append(coin_ticker_name)
 
         conn.commit()
 
-    print(buy_trail_coin_info)
+    print(buy_coin_names)
 
     now = dt.datetime.now(timezone('Asia/Seoul'))
     now_str = now.strftime(fmt)
     current_time_str = now_str.replace("T", " ")
-    now_datetime = dt.datetime.strptime(now_str, fmt.replace("T", " "))
+    now_datetime = dt.datetime.strptime(now_str, fmt)
 
     if buy_coin_names:
         prices = UPBIT.get_current_price(buy_coin_names)

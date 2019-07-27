@@ -19,8 +19,22 @@ elif os.getcwd().endswith("predict"):
 else:
     pass
 
+select_coin_ticker_name_by_status_sql = "SELECT coin_ticker_name FROM BUY_SELL WHERE status=0 or status=1;"
 select_by_datetime = "SELECT * FROM {0} WHERE datetime='{1}';"
 insert_buy_try_coin_info = "INSERT INTO BUY_SELL (coin_ticker_name, buy_datetime, cnn_prob, lstm_prob, buy_price, status) VALUES (?, ?, ?, ?, ?, ?);"
+
+
+def get_coin_ticker_name_by_status():
+    coin_ticker_name_list = []
+    with sqlite3.connect(sqlite3_db_filename, timeout=10, isolation_level=None, check_same_thread=False) as conn:
+        cursor = conn.cursor()
+
+        rows = cursor.execute(select_coin_ticker_name_by_status_sql)
+
+        for coin_ticker_name in rows:
+            coin_ticker_name_list.append(coin_ticker_name)
+        conn.commit()
+    return coin_ticker_name
 
 
 def get_good_quality_coin_names_for_buy():
@@ -88,6 +102,7 @@ def evaluate_coin_by_models(model, coin_name, model_type):
 
 
 def insert_buy_coin_info(buy_try_coin_info):
+    msg_str = "BUY\n"
     with sqlite3.connect(sqlite3_db_filename, timeout=10, isolation_level=None, check_same_thread=False) as conn:
         cursor = conn.cursor()
 
@@ -100,7 +115,16 @@ def insert_buy_coin_info(buy_try_coin_info):
                 float(buy_try_coin_info[coin_ticker_name]["buy_price"]),
                 CoinStatus.bought.value
             ))
+            msg_str += "[{0}, {1}, {2}, {3}, {4}, {5}]\n".format(
+                coin_ticker_name,
+                buy_try_coin_info[coin_ticker_name]["right_time"],
+                float(buy_try_coin_info[coin_ticker_name]["cnn_prob"]),
+                float(buy_try_coin_info[coin_ticker_name]["lstm_prob"]),
+                float(buy_try_coin_info[coin_ticker_name]["buy_price"]),
+                CoinStatus.bought.value
+            )
         conn.commit()
+    return msg_str
 
 
 def main():
@@ -108,7 +132,9 @@ def main():
 
     right_time_coin_names = get_db_right_time_coin_names()
 
-    target_coin_names = set(good_cnn_models) & set(good_lstm_models) & set(right_time_coin_names)
+    already_coin_ticker_names = get_coin_ticker_name_by_status()
+
+    target_coin_names = (set(good_cnn_models) & set(good_lstm_models) & set(right_time_coin_names)) - set(already_coin_ticker_names)
 
     print(len(good_cnn_models), len(good_lstm_models), len(right_time_coin_names), target_coin_names)
 
@@ -140,8 +166,6 @@ def main():
                 }
                 buy_try_coin_names.append("KRW-" + coin_name)
 
-        print(buy_try_coin_info)
-
         if buy_try_coin_names:
             prices = UPBIT.get_current_price(buy_try_coin_names)
 
@@ -149,9 +173,9 @@ def main():
                 buy_try_coin_info[coin_ticker_name]["buy_price"] = prices[coin_ticker_name]
 
         if len(buy_try_coin_info) > 0:
-            insert_buy_coin_info(buy_try_coin_info)
-            SLACK.send_message("me", buy_try_coin_info)
-            
+            msg_str = insert_buy_coin_info(buy_try_coin_info)
+            SLACK.send_message("me", msg_str)
+
 
 if __name__ == "__main__":
     main()

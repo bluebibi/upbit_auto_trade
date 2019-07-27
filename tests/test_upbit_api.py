@@ -31,7 +31,9 @@ class UpBitAPITestCase(unittest.TestCase):
 
     def test_get_current_price(self):
         # print(get_current_price("KRW-BTC"))
-        pp.pprint(self.upbit.get_current_price(["KRW-BTC", "KRW-XRP"]))
+        pp.pprint(self.upbit.get_current_price(
+            ['KRW-GAS', 'KRW-MOC', 'KRW-IQ', 'KRW-WAX', 'KRW-NEO', 'KRW-AERGO', 'KRW-MEDX', 'KRW-XMR',
+             'KRW-OST', 'KRW-STRAT', 'KRW-IOST', 'KRW-ONT', 'KRW-BSV']))
 
     def test_get_order_book(self):
         # print(get_orderbook(tickers=["KRW-BTC"]))
