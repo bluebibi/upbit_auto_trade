@@ -97,4 +97,7 @@ LAST_VALID_ACCURACY_THRESHOLD = float(config['EVALUATION']['last_valid_accuracy_
 LAST_SAVE_EPOCH_THRESHOLD = int(config['EVALUATION']['last_save_epoch_threshold'])
 ONE_RATE_VALID_THRESHOLD = float(config['EVALUATION']['one_rate_valid_threshold'])
 
+#SELL
 SELL_RATE = float(config['SELL']['sell_rate'])
+TRANSACTION_FEE_RATE = float(config['SELL']['transaction_fee_rate'])
+SELL_PERIOD = int(config['SELL']['sell_period'])

@@ -10,8 +10,10 @@ from predict.model_cnn import CNN
 from predict.model_rnn import LSTM
 from upbit.upbit_data import UpbitData
 from pytz import timezone
-import datetime as dt
 from common.utils import *
+from common.logger import get_logger
+
+logger = get_logger("buy_logger")
 
 if os.getcwd().endswith("upbit_auto_trade"):
     pass
@@ -139,7 +141,12 @@ def main():
 
     target_coin_names = (set(good_cnn_models) & set(good_lstm_models) & set(right_time_coin_names)) - set(already_coin_ticker_names)
 
-    print(len(good_cnn_models), len(good_lstm_models), len(right_time_coin_names), target_coin_names)
+    logger.info("*** CNN: {0}, LSTM: {1}, Right Time Coins: {2}, Target Coins: {3} ***".format(
+        len(good_cnn_models),
+        len(good_lstm_models),
+        len(right_time_coin_names),
+        target_coin_names
+    ))
 
     if len(target_coin_names) > 0:
         buy_try_coin_info = {}
@@ -158,7 +165,7 @@ def main():
                 model_type="LSTM"
             )
 
-            print(coin_name, cnn_prob, lstm_prob)
+            logger.info("{0} --> CNN Probability:{1:.4f}, LSTM Probability:{2:.4f}".format(coin_name, cnn_prob, lstm_prob))
 
             if cnn_prob and lstm_prob:
                 # coin_name --> right_time, prob
@@ -180,10 +187,7 @@ def main():
             msg_str += " @ " + SOURCE
             SLACK.send_message("me", msg_str)
 
-            now = dt.datetime.now(timezone('Asia/Seoul'))
-            now_str = now.strftime(fmt)
-            current_time_str = now_str.replace("T", " ")
-            print(current_time_str, msg_str)
+            logger.info("{0}".format(msg_str))
 
 
 if __name__ == "__main__":
