@@ -1,10 +1,8 @@
-import os
 from enum import Enum
 import configparser
 import torch
 
 import sys, os
-sys.path.append(os.getcwd())
 
 from db.sqlite_handler import SqliteHandler
 from upbit.slack import PushSlack
@@ -12,7 +10,7 @@ from upbit.upbit_api import Upbit
 
 idx = os.getcwd().index("upbit_auto_trade")
 PROJECT_HOME = os.getcwd()[:idx] + "upbit_auto_trade/"
-
+sys.path.append(os.getcwd())
 
 class CoinStatus(Enum):
     bought = 0

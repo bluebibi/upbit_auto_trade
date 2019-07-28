@@ -1,6 +1,11 @@
 import sqlite3
-from common.global_variables import *
 
+import sys, os
+idx = os.getcwd().index("upbit_auto_trade")
+PROJECT_HOME = os.getcwd()[:idx] + "upbit_auto_trade/"
+sys.path.append(os.getcwd())
+
+from common.global_variables import *
 
 class SqliteHandler:
     def __init__(self, sqlite3_price_info_db_filename):
