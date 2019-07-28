@@ -312,9 +312,6 @@ def main(model_type):
 
             early_stopping.save_last_model()
 
-            if IS_PUSH_AFTER_MAKE_MODELS:
-                early_stopping.push_models()
-
             if VERBOSE: logger.info("\n")
 
     elapsed_time = time.time() - start_time

@@ -1,9 +1,13 @@
 #https://github.com/Bjarten/early-stopping-pytorch
 import glob
 import os
+import subprocess
 
 import numpy as np
 import torch
+
+from common.global_variables import SSH_SCP_TARGET_PEM_FILE_PATH, SSH_SCP_TARGET_ID, REMOTE_TARGET_HOST, REMOTE_TARGET, \
+    IS_PUSH_AFTER_MAKE_MODELS
 
 
 class EarlyStopping:
@@ -75,6 +79,38 @@ class EarlyStopping:
         file_name = "./models/{0}/{1}".format(self.model_type, self.last_filename)
         torch.save(self.last_state_dict, file_name)
 
+        if IS_PUSH_AFTER_MAKE_MODELS:
+            self.push_models(file_name)
 
-    def push_models(self):
-        pass
+    def push_models(self, file_name):
+        remote_file = subprocess.getoutput(
+            "ssh -i {0} {1}@{2} 'ls {3}{4}/{5}_*'".format(
+                SSH_SCP_TARGET_PEM_FILE_PATH,
+                SSH_SCP_TARGET_ID,
+                REMOTE_TARGET_HOST,
+                REMOTE_TARGET,
+                self.model_type,
+                self.coin_name
+            ))
+
+        if ".pt" in remote_file:
+            subprocess.getoutput(
+                "ssh -i {0} {1}@{2} 'rm {3}{4}/{5}'".format(
+                    SSH_SCP_TARGET_PEM_FILE_PATH,
+                    SSH_SCP_TARGET_ID,
+                    REMOTE_TARGET_HOST,
+                    REMOTE_TARGET,
+                    self.model_type,
+                    remote_file
+                ))
+
+        subprocess.getoutput(
+            "scp -i {0} {1} {2}@{3}:{4}{5}/".format(
+                SSH_SCP_TARGET_PEM_FILE_PATH,
+                file_name,
+                SSH_SCP_TARGET_ID,
+                REMOTE_TARGET_HOST,
+                REMOTE_TARGET,
+                self.model_type
+        ))
+

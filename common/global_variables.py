@@ -114,5 +114,6 @@ IS_PUSH_AFTER_MAKE_MODELS = config.getboolean('PUSH_MODELS', 'is_push_after_make
 REMOTE_TARGET_HOST = config['PUSH_MODELS']['remote_target_host']
 REMOTE_TARGET = config['PUSH_MODELS']['remote_target']
 SSH_SCP_TARGET_PORT = config['PUSH_MODELS']['ssh_scp_target_port']
+SSH_SCP_TARGET_ID = config['PUSH_MODELS']['ssh_scp_target_id']
 SSH_SCP_TARGET_PEM_FILE_PATH = config['PUSH_MODELS']['ssh_scp_target_pem_file_path']
 LOCAL_SOURCE = config['PUSH_MODELS']['local_source']
