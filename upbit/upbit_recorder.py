@@ -1,25 +1,20 @@
 import time
 import sqlite3
-
-import datetime as dt
-
-from pytz import timezone
-
 from common.global_variables import *
+from common.logger import get_logger
 
-if os.getcwd().endswith("upbit_auto_trade"):
-    pass
-elif os.getcwd().endswith("upbit"):
+logger = get_logger("upbit_recorder_logger")
+
+if os.getcwd().endswith("upbit"):
     os.chdir("..")
-else:
-    pass
 
 price_insert = "INSERT INTO {0} VALUES(NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);"
 select_by_datetime = "SELECT * FROM {0} WHERE datetime='{1}';"
 remove_duplicated_datetime_sql = """
 DELETE FROM {0} WHERE id in
 (SELECT id FROM
-(SELECT id, "datetime", COUNT(*) c FROM {0} GROUP BY "datetime" HAVING c > 1))"""
+(SELECT id, "datetime", COUNT(*) c FROM {0} GROUP BY "datetime" HAVING c > 1))
+"""
 
 
 class UpbitRecorder:
@@ -47,7 +42,7 @@ class UpbitRecorder:
             if not self.exist_row_by_datetime(coin_name, datetime):
                 o = UPBIT.get_orderbook(tickers=ticker)
 
-                with sqlite3.connect(sqlite3_db_filename, timeout=10, isolation_level=None, check_same_thread=False) as conn:
+                with sqlite3.connect(sqlite3_price_info_db_filename, timeout=10, isolation_level=None, check_same_thread=False) as conn:
                     cursor = conn.cursor()
 
                     cursor.execute(price_insert.format("KRW_" + coin_name), (
@@ -73,7 +68,7 @@ class UpbitRecorder:
         return new_records
 
     def exist_row_by_datetime(self, coin_name, datetime):
-        with sqlite3.connect(sqlite3_db_filename, timeout=10, isolation_level=None, check_same_thread=False) as conn:
+        with sqlite3.connect(sqlite3_price_info_db_filename, timeout=10, isolation_level=None, check_same_thread=False) as conn:
             cursor = conn.cursor()
             cursor.execute(select_by_datetime.format("KRW_" + coin_name, datetime))
 
@@ -88,7 +83,7 @@ class UpbitRecorder:
                 return True
 
     def remove_duplicated_datetime(self, coin_name):
-        with sqlite3.connect(sqlite3_db_filename, timeout=10, isolation_level=None, check_same_thread=False) as conn:
+        with sqlite3.connect(sqlite3_price_info_db_filename, timeout=10, isolation_level=None, check_same_thread=False) as conn:
             cursor = conn.cursor()
             cursor.execute(remove_duplicated_datetime_sql.format("KRW_" + coin_name))
             conn.commit()
@@ -105,8 +100,8 @@ if __name__ == "__main__":
     for coin_name in upbit_recorder.coin_names:
         upbit_recorder.remove_duplicated_datetime(coin_name)
 
-    # msg = "Number of new upbit records: {0} @ {1}".format(total_new_records, SOURCE)
-    # SLACK.send_message("me", msg)
+    msg = "Number of new upbit records: {0} @ {1}".format(total_new_records, SOURCE)
+    logger.info(msg)
 
 
 

@@ -46,12 +46,12 @@ class UpbitData:
         if TRAIN_COLS_FULL:
             df = pd.read_sql_query(
                 select_all_with_btc_recent_window.format("KRW_" + self.coin_name, WINDOW_SIZE),
-                sqlite3.connect(sqlite3_db_filename, timeout=10, isolation_level=None, check_same_thread=False)
+                sqlite3.connect(sqlite3_price_info_db_filename, timeout=10, isolation_level=None, check_same_thread=False)
             )
         else:
             df = pd.read_sql_query(
                 select_ohlcv_with_btc_recent_window.format("KRW_" + self.coin_name, WINDOW_SIZE),
-                sqlite3.connect(sqlite3_db_filename, timeout=10, isolation_level=None, check_same_thread=False)
+                sqlite3.connect(sqlite3_price_info_db_filename, timeout=10, isolation_level=None, check_same_thread=False)
             )
 
         df = df.sort_values('id', ascending=True)
@@ -71,12 +71,12 @@ class UpbitData:
         if TRAIN_COLS_FULL:
             df = pd.read_sql_query(
                 select_all_with_btc.format("KRW_" + self.coin_name),
-                sqlite3.connect(sqlite3_db_filename, timeout=10, isolation_level=None, check_same_thread=False)
+                sqlite3.connect(sqlite3_price_info_db_filename, timeout=10, isolation_level=None, check_same_thread=False)
             )
         else:
             df = pd.read_sql_query(
                 select_ohlcv_with_btc.format("KRW_" + self.coin_name),
-                sqlite3.connect(sqlite3_db_filename, timeout=10, isolation_level=None, check_same_thread=False)
+                sqlite3.connect(sqlite3_price_info_db_filename, timeout=10, isolation_level=None, check_same_thread=False)
             )
 
         df = df.drop(["id", "datetime"], axis=1)

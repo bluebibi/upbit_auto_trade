@@ -31,7 +31,7 @@ insert_buy_try_coin_info = "INSERT INTO BUY_SELL (coin_ticker_name, buy_datetime
 
 def get_coin_ticker_name_by_status():
     coin_ticker_name_list = []
-    with sqlite3.connect(sqlite3_db_filename, timeout=10, isolation_level=None, check_same_thread=False) as conn:
+    with sqlite3.connect(sqlite3_price_info_db_filename, timeout=10, isolation_level=None, check_same_thread=False) as conn:
         cursor = conn.cursor()
 
         rows = cursor.execute(select_coin_ticker_name_by_status_sql)
@@ -75,7 +75,7 @@ def get_db_right_time_coin_names():
     current_time_str = now_str.replace("T", " ")
     current_time_str = current_time_str[:-4] + "0:00"
 
-    with sqlite3.connect(sqlite3_db_filename, timeout=10, isolation_level=None, check_same_thread=False) as conn:
+    with sqlite3.connect(sqlite3_price_info_db_filename, timeout=10, isolation_level=None, check_same_thread=False) as conn:
         cursor = conn.cursor()
         all_coin_names = UPBIT.get_all_coin_names()
         for coin_name in all_coin_names:
@@ -108,7 +108,7 @@ def evaluate_coin_by_models(model, coin_name, model_type):
 
 def insert_buy_coin_info(buy_try_coin_info):
     msg_str = "*** BUY\n"
-    with sqlite3.connect(sqlite3_db_filename, timeout=10, isolation_level=None, check_same_thread=False) as conn:
+    with sqlite3.connect(sqlite3_price_info_db_filename, timeout=10, isolation_level=None, check_same_thread=False) as conn:
         cursor = conn.cursor()
 
         for coin_ticker_name in buy_try_coin_info:

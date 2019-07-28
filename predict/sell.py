@@ -18,7 +18,7 @@ update_trail_coin_info_sql = "UPDATE BUY_SELL SET trail_datetime=?, trail_price=
 
 class Seller:
     def select_all_bought_coin_names(self):
-        with sqlite3.connect(sqlite3_db_filename, timeout=10, isolation_level=None, check_same_thread=False) as conn:
+        with sqlite3.connect(sqlite3_price_info_db_filename, timeout=10, isolation_level=None, check_same_thread=False) as conn:
             cursor = conn.cursor()
             cursor.execute(
                 select_all_bought_coin_names_sql, (CoinStatus.bought.value, CoinStatus.trailed.value)
@@ -93,7 +93,7 @@ class Seller:
         return msg_str
 
     def update_coin_info(self, trail_coin_info):
-        with sqlite3.connect(sqlite3_db_filename, timeout=10, isolation_level=None, check_same_thread=False) as conn:
+        with sqlite3.connect(sqlite3_price_info_db_filename, timeout=10, isolation_level=None, check_same_thread=False) as conn:
             cursor = conn.cursor()
 
             for coin_ticker_name in trail_coin_info:

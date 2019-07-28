@@ -36,10 +36,11 @@ class BuyType(Enum):
 
 # GENERAL
 fmt = "%Y-%m-%dT%H:%M:%S"
-idx = os.getcwd().index("upbit_auto_trade")
-BASE_DIR = os.getcwd()[:idx] + "upbit_auto_trade/"
-sqlite3_db_filename = os.path.join(BASE_DIR, 'db/upbit_price_info.db')
-order_book_info_filename = os.path.join(BASE_DIR, 'models/order_book_info.pickle')
+
+sqlite3_price_info_db_filename = os.path.join(PROJECT_HOME, 'db/upbit_price_info.db')
+sqlite3_buy_sell_db_filename = os.path.join(PROJECT_HOME, 'db/upbit_buy_sell_info.db')
+
+order_book_info_filename = os.path.join(PROJECT_HOME, 'models/order_book_info.pickle')
 
 config = configparser.ConfigParser()
 read_ok = config.read(os.getcwd()[:idx] + "upbit_auto_trade/common/config.ini")

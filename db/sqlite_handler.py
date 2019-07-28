@@ -3,12 +3,12 @@ from common.global_variables import *
 
 
 class SqliteHandler:
-    def __init__(self, sqlite3_db_filename):
-        with sqlite3.connect(sqlite3_db_filename, timeout=10, isolation_level=None, check_same_thread=False) as conn:
+    def __init__(self, sqlite3_price_info_db_filename):
+        with sqlite3.connect(sqlite3_price_info_db_filename, timeout=10, isolation_level=None, check_same_thread=False) as conn:
             conn.execute("PRAGMA busy_timeout = 3000")
 
     def create_tables(self, coin_names):
-        with sqlite3.connect(sqlite3_db_filename, timeout=10, isolation_level=None, check_same_thread=False) as conn:
+        with sqlite3.connect(sqlite3_price_info_db_filename, timeout=10, isolation_level=None, check_same_thread=False) as conn:
             cursor = conn.cursor()
 
             for coin_name in coin_names:
@@ -19,6 +19,11 @@ class SqliteHandler:
                     total_ask_size FLOAT, total_bid_size FLOAT, btmi FLOAT, btmi_rate FLOAT, 
                     btai FLOAT, btai_rate FLOAT)""".format(ticker))
 
+            conn.commit()
+
+    def create_buy_sell_table(self):
+        with sqlite3.connect(sqlite3_buy_sell_db_filename, timeout=10, isolation_level=None, check_same_thread=False) as conn:
+            cursor = conn.cursor()
             cursor.execute("""
                 CREATE TABLE IF NOT EXISTS BUY_SELL (id INTEGER PRIMARY KEY AUTOINCREMENT, 
                 coin_ticker_name TEXT, buy_datetime DATETIME, cnn_prob FLOAT, lstm_prob FLOAT, buy_price FLOAT, 
@@ -28,7 +33,7 @@ class SqliteHandler:
             conn.commit()
 
     def drop_tables(self, coin_names):
-        with sqlite3.connect(sqlite3_db_filename, timeout=10, isolation_level=None, check_same_thread=False) as conn:
+        with sqlite3.connect(sqlite3_price_info_db_filename, timeout=10, isolation_level=None, check_same_thread=False) as conn:
             cursor = conn.cursor()
             for coin_name in coin_names:
                 ticker = "KRW_" + coin_name
@@ -38,5 +43,6 @@ class SqliteHandler:
 
 
 if __name__ == "__main__":
-    sql_handler = SqliteHandler(sqlite3_db_filename)
-    sql_handler.create_tables(UPBIT.get_all_coin_names())
+    sql_handler = SqliteHandler(sqlite3_price_info_db_filename)
+    #sql_handler.create_tables(UPBIT.get_all_coin_names())
+    sql_handler.create_buy_sell_table()
