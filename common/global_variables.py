@@ -10,7 +10,7 @@ from upbit.upbit_api import Upbit
 
 idx = os.getcwd().index("upbit_auto_trade")
 PROJECT_HOME = os.getcwd()[:idx] + "upbit_auto_trade/"
-sys.path.append(os.getcwd())
+sys.path.append(PROJECT_HOME)
 
 class CoinStatus(Enum):
     bought = 0
