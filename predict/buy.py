@@ -103,7 +103,7 @@ def evaluate_coin_by_models(model, coin_name, model_type):
     if idx and prob > 0.9:
         return prob
     else:
-        return None
+        return -1
 
 
 def insert_buy_coin_info(buy_try_coin_info):
@@ -165,9 +165,11 @@ def main():
                 model_type="LSTM"
             )
 
-            logger.info("{0} --> CNN Probability:{1:.4f}, LSTM Probability:{2:.4f}".format(coin_name, cnn_prob, lstm_prob))
+            logger.info("{0} --> CNN Probability:{1:.4f}, LSTM Probability:{2:.4f}".format(
+                coin_name, cnn_prob, lstm_prob
+            ))
 
-            if cnn_prob and lstm_prob:
+            if cnn_prob > 0 and lstm_prob > 0:
                 # coin_name --> right_time, prob
                 buy_try_coin_info["KRW-" + coin_name] = {
                     "right_time": right_time_coin_names[coin_name],
