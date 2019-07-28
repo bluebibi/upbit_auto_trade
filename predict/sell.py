@@ -112,7 +112,7 @@ class Seller:
 
         if msg_str:
             msg_str = "*** SELL\n" + msg_str + " @ " + SOURCE
-
+            SLACK.send_message("me", msg_str)
             logger.info("{0}".format(msg_str))
 
 

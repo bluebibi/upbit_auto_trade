@@ -26,3 +26,20 @@
   - 42: validation data size
   - 0.0476:rate of one in validation data
 
+### 5. crontab 설정
+
+- 2,22,42 * * * * ~/git/upbit_auto_trade/scripts/pull_models.sh
+- */5 * * * * ~/git/upbit_auto_trade/scripts/upbit_record_ubuntu.sh
+- */5 * * * * ~/git/upbit_auto_trade/scripts/buy_ubuntu.sh
+- #*/1 * * * * ~/git/upbit_auto_trade/scripts/sell_ubuntu.sh
+- #0 */6 * * * ~/git/upbit_auto_trade/scripts/make_models_ubuntu.sh
+- 0 */1 * * * ~/git/upbit_auto_trade/scripts/statistics_ubuntu.sh
+
+### 6. pm2 설정
+
+- sudo apt-get update
+- sudo apt-get install nodejs
+- sudo apt-get install npm
+- sudo npm ins
+- pm2 start sell_ubuntu.sh: 1
+- pm2 start start_web_app_ubuntu.sh: 2

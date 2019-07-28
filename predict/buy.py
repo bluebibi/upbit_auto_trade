@@ -187,8 +187,8 @@ def main():
         if len(buy_try_coin_info) > 0:
             msg_str = insert_buy_coin_info(buy_try_coin_info)
             msg_str += " @ " + SOURCE
-            SLACK.send_message("me", msg_str)
 
+            SLACK.send_message("me", msg_str)
             logger.info("{0}".format(msg_str))
 
 
