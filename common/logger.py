@@ -1,8 +1,7 @@
 import glob
 import logging, os, sys
 from logging.handlers import RotatingFileHandler
-
-PROJECT_HOME = os.getcwd()
+from common.global_variables import PROJECT_HOME
 
 
 def get_logger(name):

@@ -100,3 +100,11 @@ ONE_RATE_VALID_THRESHOLD = float(config['EVALUATION']['one_rate_valid_threshold'
 SELL_RATE = float(config['SELL']['sell_rate'])
 TRANSACTION_FEE_RATE = float(config['SELL']['transaction_fee_rate'])
 SELL_PERIOD = int(config['SELL']['sell_period'])
+
+#PULL_MODELS
+REMOTE_HOST = config['PULL_MODELS']['remote_host']
+REMOTE_TARGET = config['PULL_MODELS']['remote_target']
+SSH_SCP_PORT = config['PULL_MODELS']['ssh_scp_port']
+SSH_SCP_ID = config['PULL_MODELS']['ssh_scp_id']
+SSH_SCP_PASSWORD = config['PULL_MODELS']['ssh_scp_password']
+LOCAL_TARGET = config['PULL_MODELS']['local_target']
