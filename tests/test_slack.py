@@ -1,5 +1,11 @@
+import os
+import sys
 import unittest
 from upbit.slack import PushSlack
+
+idx = os.getcwd().index("upbit_auto_trade")
+PROJECT_HOME = os.getcwd()[:idx] + "upbit_auto_trade/"
+sys.path.append(os.getcwd())
 
 
 class TestSlack(unittest.TestCase):

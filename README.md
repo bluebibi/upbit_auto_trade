@@ -29,7 +29,7 @@
 ### 5. crontab 설정
 
 - 2,22,42 * * * * ~/git/upbit_auto_trade/scripts/pull_models.sh
-- */5 * * * * ~/git/upbit_auto_trade/scripts/upbit_record_ubuntu.sh
+- */5 * * * * ~/git/upbit_auto_trade/scripts/upbit_recorder_ubuntu.sh
 - */5 * * * * ~/git/upbit_auto_trade/scripts/buy_ubuntu.sh
 - #*/1 * * * * ~/git/upbit_auto_trade/scripts/sell_ubuntu.sh
 - #0 */6 * * * ~/git/upbit_auto_trade/scripts/make_models_ubuntu.sh
