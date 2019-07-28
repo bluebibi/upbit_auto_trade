@@ -74,3 +74,7 @@ class EarlyStopping:
 
         file_name = "./models/{0}/{1}".format(self.model_type, self.last_filename)
         torch.save(self.last_state_dict, file_name)
+
+
+    def push_models(self):
+        pass

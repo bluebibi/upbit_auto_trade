@@ -102,9 +102,17 @@ TRANSACTION_FEE_RATE = float(config['SELL']['transaction_fee_rate'])
 SELL_PERIOD = int(config['SELL']['sell_period'])
 
 #PULL_MODELS
-REMOTE_HOST = config['PULL_MODELS']['remote_host']
-REMOTE_TARGET = config['PULL_MODELS']['remote_target']
-SSH_SCP_PORT = config['PULL_MODELS']['ssh_scp_port']
-SSH_SCP_ID = config['PULL_MODELS']['ssh_scp_id']
-SSH_SCP_PASSWORD = config['PULL_MODELS']['ssh_scp_password']
+REMOTE_SOURCE_HOST = config['PULL_MODELS']['remote_source_host']
+REMOTE_SOURCE = config['PULL_MODELS']['remote_source']
+SSH_SCP_SOURCE_PORT = config['PULL_MODELS']['ssh_scp_source_port']
+SSH_SCP_SOURCE_ID = config['PULL_MODELS']['ssh_scp_source_id']
+SSH_SCP_SOURCE_PASSWORD = config['PULL_MODELS']['ssh_scp_source_password']
 LOCAL_TARGET = config['PULL_MODELS']['local_target']
+
+#PUSH_MODELS
+IS_PUSH_AFTER_MAKE_MODELS = config.getboolean('PUSH_MODELS', 'is_push_after_make_models')
+REMOTE_TARGET_HOST = config['PUSH_MODELS']['remote_target_host']
+REMOTE_TARGET = config['PUSH_MODELS']['remote_target']
+SSH_SCP_TARGET_PORT = config['PUSH_MODELS']['ssh_scp_target_port']
+SSH_SCP_TARGET_PEM_FILE_PATH = config['PUSH_MODELS']['ssh_scp_target_pem_file_path']
+LOCAL_SOURCE = config['PUSH_MODELS']['local_source']

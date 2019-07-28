@@ -1,8 +1,8 @@
 import glob
 import os
 import subprocess
-from common.global_variables import REMOTE_HOST, REMOTE_TARGET
-from common.global_variables import SSH_SCP_PORT, SSH_SCP_ID, SSH_SCP_PASSWORD, LOCAL_TARGET
+from common.global_variables import REMOTE_SOURCE_HOST, REMOTE_SOURCE
+from common.global_variables import SSH_SCP_SOURCE_PORT, SSH_SCP_SOURCE_ID, SSH_SCP_SOURCE_PASSWORD, LOCAL_TARGET
 from common.global_variables import UPBIT, PROJECT_HOME
 from common.logger import get_logger
 
@@ -11,11 +11,11 @@ logger = get_logger("pull_models_logger")
 
 def check_remote_file(model_type, coin_name):
     output = subprocess.getoutput("sshpass -p{0} ssh -p {1} -o StrictHostKeyChecking=no {2}@{3} 'ls {4}{5}/{6}_*'".format(
-        SSH_SCP_PASSWORD,
-        SSH_SCP_PORT,
-        SSH_SCP_ID,
-        REMOTE_HOST,
-        REMOTE_TARGET,
+        SSH_SCP_SOURCE_PASSWORD,
+        SSH_SCP_SOURCE_PORT,
+        SSH_SCP_SOURCE_ID,
+        REMOTE_SOURCE_HOST,
+        REMOTE_SOURCE,
         model_type,
         coin_name
     ))
@@ -24,10 +24,10 @@ def check_remote_file(model_type, coin_name):
 
 def download_remote_file(model_type, remote_file, local_file):
     subprocess.getoutput("sshpass -p{0} scp -P {1} -o StrictHostKeyChecking=no {2}@{3}:{4} {5}{6}/{7}".format(
-        SSH_SCP_PASSWORD,
-        SSH_SCP_PORT,
-        SSH_SCP_ID,
-        REMOTE_HOST,
+        SSH_SCP_SOURCE_PASSWORD,
+        SSH_SCP_SOURCE_PORT,
+        SSH_SCP_SOURCE_ID,
+        REMOTE_SOURCE_HOST,
         remote_file,
         LOCAL_TARGET,
         model_type,

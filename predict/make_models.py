@@ -156,7 +156,7 @@ def main(model_type):
         DEVICE
     )
 
-    print(heading_msg, flush=True)
+    logger.info(heading_msg)
 
     patience = 50
 
@@ -182,7 +182,6 @@ def main(model_type):
                 one_rate_valid
             )
             logger.info(msg)
-            print(msg, end=" - ", flush=True)
 
         if model_type == "CNN":
             model = CNN(input_width=INPUT_SIZE, input_height=WINDOW_SIZE).to(DEVICE)
@@ -296,7 +295,7 @@ def main(model_type):
             early_stopping.last_valid_accuracy,
             all(high_quality_model_condition_list)
         )
-        print(msg, flush=True)
+        logger.info(msg)
 
         if all(high_quality_model_condition_list):
             coin_names_high_quality_models.append(coin_name)
@@ -313,15 +312,18 @@ def main(model_type):
 
             early_stopping.save_last_model()
 
+            if IS_PUSH_AFTER_MAKE_MODELS:
+                early_stopping.push_models()
+
             if VERBOSE: logger.info("\n")
 
     elapsed_time = time.time() - start_time
     elapsed_time_str = time.strftime("%H:%M:%S", time.gmtime(elapsed_time))
 
-    print("####################################################################")
-    print("Coin Name with High Quality Model:", coin_names_high_quality_models)
-    print("Elapsed Time:", elapsed_time_str)
-    print("####################################################################")
+    logger.info("####################################################################")
+    logger.info("Coin Name with High Quality Model:", coin_names_high_quality_models)
+    logger.info("Elapsed Time:", elapsed_time_str)
+    logger.info("####################################################################")
 
     slack_msg = "MODEL TYPE:{0} - HIGH QUALITY MODELS:{1} - ELAPSED_TIME:{2} @ {3}".format(
         model_type, coin_names_high_quality_models, elapsed_time_str, SOURCE
