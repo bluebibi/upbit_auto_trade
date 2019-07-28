@@ -36,7 +36,7 @@ def download_remote_file(model_type, remote_file, local_file):
 
 
 if __name__ == "__main__":
-    print("\n#######################################################################\n")
+    logger.info("\n#######################################################################\n")
     coin_names = UPBIT.get_all_coin_names()
     cnn_model_files = glob.glob(PROJECT_HOME + 'models/CNN/*.pt')
     lstm_model_files = glob.glob(PROJECT_HOME + 'models/LSTM/*.pt')
