@@ -91,7 +91,7 @@ class Seller:
                 sell_fee=sell_fee,
                 sell_krw=sell_krw,
                 trail_rate=trail_rate,
-                total_krw=buy_trail_coin_info[coin_ticker_name]["buy_coin_volume"] + sell_krw,
+                total_krw=buy_trail_coin_info[coin_ticker_name]["total_krw"] + sell_krw,
                 status=coin_status,
                 coin_ticker_name=coin_ticker_name,
                 buy_datetime=buy_trail_coin_info[coin_ticker_name]["buy_datetime_str"]
