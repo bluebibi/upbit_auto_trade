@@ -15,12 +15,9 @@ from common.logger import get_logger
 
 logger = get_logger("buy_logger")
 
-if os.getcwd().endswith("upbit_auto_trade"):
-    pass
-elif os.getcwd().endswith("predict"):
+if os.getcwd().endswith("predict"):
     os.chdir("..")
-else:
-    pass
+
 
 locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
 

@@ -1,6 +1,12 @@
 import glob
 import os
 import subprocess
+import sys
+
+idx = os.getcwd().index("upbit_auto_trade")
+PROJECT_HOME = os.getcwd()[:idx] + "upbit_auto_trade/"
+sys.path.append(PROJECT_HOME)
+
 from common.global_variables import REMOTE_SOURCE_HOST, REMOTE_SOURCE
 from common.global_variables import SSH_SCP_SOURCE_PORT, SSH_SCP_SOURCE_ID, SSH_SCP_SOURCE_PASSWORD, LOCAL_TARGET
 from common.global_variables import UPBIT, PROJECT_HOME

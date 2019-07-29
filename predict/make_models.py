@@ -16,12 +16,8 @@ from common.logger import get_logger
 
 logger = get_logger("make_models_logger")
 
-if os.getcwd().endswith("upbit_auto_trade"):
-    pass
-elif os.getcwd().endswith("predict"):
+if os.getcwd().endswith("predict"):
     os.chdir("..")
-else:
-    pass
 
 
 def mkdir_models():
