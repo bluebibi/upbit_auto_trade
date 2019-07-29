@@ -45,9 +45,7 @@ class Seller:
                 "buy_coin_volume": float(row[9]),
                 "total_krw": int(row[15]),
             }
-
-        if len(buy_trail_coin_info) > 0:
-            self.trail(buy_trail_coin_info)
+        return buy_trail_coin_info
 
     def trail(self, buy_trail_coin_info):
         now = dt.datetime.now(timezone('Asia/Seoul'))
@@ -57,7 +55,6 @@ class Seller:
 
         msg_str = ""
 
-        trail_coin_info = {}
         for coin_ticker_name in buy_trail_coin_info:
 
             _, trail_price, sell_fee, sell_krw = UPBIT.get_expected_sell_coin_price_for_volume(
@@ -104,8 +101,6 @@ class Seller:
                     convert_unit_2(trail_rate * 100),
                     coin_status_to_hangul(coin_status)
                 )
-
-        self.update_coin_info(trail_coin_info)
         return msg_str
 
     def update_coin_info(self, trail_datetime, trail_price, sell_fee, sell_krw, trail_rate, total_krw, status,
@@ -120,15 +115,18 @@ class Seller:
             conn.commit()
 
     def try_to_sell(self):
-        msg_str = self.select_all_bought_coin_names()
+        buy_trail_coin_info = self.select_all_bought_coin_names()
 
-        if msg_str:
-            msg_str = "### SELL\n" + msg_str + " @ " + SOURCE
+        if len(buy_trail_coin_info) > 0:
+            msg_str = self.trail(buy_trail_coin_info)
 
-            pusher = PushSlack(SLACK_WEBHOOK_URL_1, SLACK_WEBHOOK_URL_2)
-            pusher.send_message("me", msg_str)
+            if msg_str:
+                msg_str = "### SELL\n" + msg_str + " @ " + SOURCE
 
-            logger.info("{0}".format(msg_str))
+                pusher = PushSlack(SLACK_WEBHOOK_URL_1, SLACK_WEBHOOK_URL_2)
+                pusher.send_message("me", msg_str)
+
+                logger.info("{0}".format(msg_str))
 
 
 if __name__ == "__main__":
