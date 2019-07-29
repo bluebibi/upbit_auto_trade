@@ -81,7 +81,7 @@ class Seller:
                     "buy_datetime": buy_trail_coin_info[coin_ticker_name]["buy_datetime_str"]
                 }
 
-                if coin_status == CoinStatus.success_sold.value or coin_status == CoinStatus.gain_sold.value:
+                if coin_status != CoinStatus.trailed.value and coin_status != CoinStatus.bought.value:
                     msg_str += "[{0}, {1}, {2}%, {3}]\n".format(
                         coin_ticker_name,
                         trail_price,
