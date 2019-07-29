@@ -83,34 +83,39 @@ class EarlyStopping:
             self.push_models(file_name)
 
     def push_models(self, file_name):
-        remote_file = subprocess.getoutput(
-            "ssh -i {0} {1}@{2} 'ls {3}{4}/{5}_*'".format(
+        cmd = "ssh -i {0} {1}@{2} 'ls {3}{4}/{5}_*'".format(
+            SSH_SCP_TARGET_PEM_FILE_PATH,
+            SSH_SCP_TARGET_ID,
+            REMOTE_TARGET_HOST,
+            REMOTE_TARGET,
+            self.model_type,
+            self.coin_name
+        )
+
+        self.logger.info(cmd)
+
+        remote_file = subprocess.getoutput(cmd)
+
+        if ".pt" in remote_file:
+            cmd = "ssh -i {0} {1}@{2} 'rm {3}{4}/{5}'".format(
                 SSH_SCP_TARGET_PEM_FILE_PATH,
                 SSH_SCP_TARGET_ID,
                 REMOTE_TARGET_HOST,
                 REMOTE_TARGET,
                 self.model_type,
-                self.coin_name
-            ))
+                remote_file
+            )
+            self.logger.info(cmd)
+            subprocess.getoutput(cmd)
 
-        if ".pt" in remote_file:
-            subprocess.getoutput(
-                "ssh -i {0} {1}@{2} 'rm {3}{4}/{5}'".format(
-                    SSH_SCP_TARGET_PEM_FILE_PATH,
-                    SSH_SCP_TARGET_ID,
-                    REMOTE_TARGET_HOST,
-                    REMOTE_TARGET,
-                    self.model_type,
-                    remote_file
-                ))
-
-        subprocess.getoutput(
-            "scp -i {0} {1} {2}@{3}:{4}{5}/".format(
-                SSH_SCP_TARGET_PEM_FILE_PATH,
-                file_name,
-                SSH_SCP_TARGET_ID,
-                REMOTE_TARGET_HOST,
-                REMOTE_TARGET,
-                self.model_type
-        ))
+        cmd = "scp -i {0} {1} {2}@{3}:{4}{5}/".format(
+            SSH_SCP_TARGET_PEM_FILE_PATH,
+            file_name,
+            SSH_SCP_TARGET_ID,
+            REMOTE_TARGET_HOST,
+            REMOTE_TARGET,
+            self.model_type
+        )
+        self.logger.info(cmd)
+        subprocess.getoutput(cmd)
 
