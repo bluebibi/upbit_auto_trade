@@ -3,7 +3,9 @@ import locale
 import sqlite3
 
 import sys, os
-sys.path.append(os.getcwd())
+idx = os.getcwd().index("upbit_auto_trade")
+PROJECT_HOME = os.getcwd()[:idx] + "upbit_auto_trade/"
+sys.path.append(PROJECT_HOME)
 
 from common.global_variables import *
 from predict.model_cnn import CNN
