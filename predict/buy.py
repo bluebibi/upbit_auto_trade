@@ -84,7 +84,7 @@ def get_db_right_time_coin_names():
             cursor.execute(select_by_datetime.format("KRW_" + coin_name, current_time_str))
             close_price_ = cursor.fetchall()
             if close_price_:
-                coin_right_time_info[coin_name] = [close_price_[0], current_time_str]
+                coin_right_time_info[coin_name] = [close_price_[0][0], current_time_str]
         conn.commit()
 
     return coin_right_time_info
