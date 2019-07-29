@@ -329,5 +329,6 @@ if __name__ == "__main__":
 
     SLACK.send_message("me", "MAKE MODELS STARTED @ {0}".format(SOURCE))
 
-    main(model_type="LSTM")
     main(model_type="CNN")
+    main(model_type="LSTM")
+

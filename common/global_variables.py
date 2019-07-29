@@ -36,7 +36,6 @@ class BuyType(Enum):
 fmt = "%Y-%m-%dT%H:%M:%S"
 
 sqlite3_price_info_db_filename = os.path.join(PROJECT_HOME, 'db/upbit_price_info.db')
-sqlite3_buy_sell_db_filename = os.path.join(PROJECT_HOME, 'db/upbit_buy_sell_info.db')
 
 order_book_info_filename = os.path.join(PROJECT_HOME, 'models/order_book_info.pickle')
 
