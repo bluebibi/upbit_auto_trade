@@ -230,7 +230,7 @@ def main():
     )
 
     msg = MIMEText(html_data, _subtype="html", _charset="utf-8")
-    msg['Subject'] = 'Statistics From ' + SOURCE
+    msg['Subject'] = 'Statistics from ' + SOURCE
 
     s.sendmail("yh21.han@gmail.com", "yh21.han@gmail.com", msg.as_string())
 

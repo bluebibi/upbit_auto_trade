@@ -110,7 +110,6 @@ def evaluate_coin_by_models(model, coin_name, model_type):
 
 def insert_buy_coin_info(coin_ticker_name, buy_datetime, cnn_prob, lstm_prob, buy_base_price, buy_krw, buy_fee,
                          buy_price, buy_coin_volume, total_krw, status):
-    msg_str = "*** BUY\n"
     with sqlite3.connect(sqlite3_price_info_db_filename, timeout=10, isolation_level=None, check_same_thread=False) as conn:
         cursor = conn.cursor()
 
@@ -124,12 +123,13 @@ def insert_buy_coin_info(coin_ticker_name, buy_datetime, cnn_prob, lstm_prob, bu
         ))
         conn.commit()
 
-    msg_str += "[{0}, buy_base_price: {1}, buy_price: {2}, buy_coin_volume: {3}, total_krw: {4}]\n".format(
+    msg_str = "*** BUY [{0}, buy_base_price: {1}, buy_price: {2}, buy_coin_volume: {3}, total_krw: {4}] @ {5}".format(
         coin_ticker_name,
         locale.format_string("%.2f", float(buy_base_price), grouping=True),
         locale.format_string("%.2f", float(buy_price), grouping=True),
         locale.format_string("%.2f", float(buy_coin_volume), grouping=True),
-        total_krw
+        total_krw,
+        SOURCE
     )
 
     return msg_str
@@ -221,8 +221,6 @@ def main():
                         total_krw=current_total_krw - INVEST_KRW,
                         status=CoinStatus.bought.value
                     )
-
-                    msg_str += " @ " + SOURCE
 
                     SLACK.send_message("me", msg_str)
                     logger.info("{0}".format(msg_str))
