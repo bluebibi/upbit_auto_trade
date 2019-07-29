@@ -114,6 +114,10 @@ def insert_buy_coin_info(coin_ticker_name, buy_datetime, cnn_prob, lstm_prob, bu
     with sqlite3.connect(sqlite3_price_info_db_filename, timeout=10, isolation_level=None, check_same_thread=False) as conn:
         cursor = conn.cursor()
 
+        "INSERT INTO BUY_SELL (coin_ticker_name, buy_datetime, cnn_prob, lstm_prob, buy_base_price, " \
+        "buy_krw, buy_fee, buy_price, buy_coin_volume, total_krw, status) VALUES (?, ?, ?, ?, ?, " \
+        "?, ?, ?, ?, ?, ?);"
+
         cursor.execute(insert_buy_try_coin_info, (
             coin_ticker_name, buy_datetime, cnn_prob, lstm_prob, buy_base_price, buy_krw, buy_fee, buy_price,
             buy_coin_volume, total_krw, status
@@ -187,7 +191,7 @@ def main():
             if cnn_prob > 0 and lstm_prob > 0:
                 # coin_name --> right_time, prob
                 buy_try_coin_info["KRW-" + coin_name] = {
-                    "buy_base_price": right_time_coin_info[coin_name][0],
+                    "buy_base_price": float(right_time_coin_info[coin_name][0]),
                     "right_time": right_time_coin_info[coin_name][1],
                     "cnn_prob": cnn_prob,
                     "lstm_prob": lstm_prob
