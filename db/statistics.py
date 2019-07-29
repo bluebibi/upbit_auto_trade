@@ -154,7 +154,7 @@ def buy_sell_tables():
         conn.commit()
 
     txt = "<tr><th>매수 기준 날짜/시각</th><th>구매 코인</th><th>모델 확신도<br/>(CNN | LSTM)</th><th>구매 기준 가격</th><th>구매 가격</th>"
-    txt += "<th>투자 금액</th><th>현재 가격</th><th>현재 원화</th><th>경과 시간</th><th>등락 비율</th><th>전체 원화</th><th>상태</th></tr>"
+    txt += "<th>투자 금액</th><th>현재 가격</th><th>현재 원화</th><th>경과 시간</th><th>등락 비율</th><th>상태</th></tr>"
     total_rate = 0.0
     num = 0
     num_success = 0
@@ -183,7 +183,7 @@ def buy_sell_tables():
         total_rate += float(row[14])
         txt += "<tr>"
         txt += "<td>{0}</td><td>{1}</td><td>{2} | {3}</td><td>{4}</td><td>{5}</td><td>{6}</td><td>{7}</td><td>{" \
-               "8}</td><td>{9}</td><td>{10}%</td><td>{11}%</td><td>{12}</td>".format(
+               "8}</td><td>{9}</td><td>{10}%</td><td>{11}%</td>".format(
             row[2].replace(":00", ""), #buy_datetime - 매수 기준 날짜/시각
             "<a href='https://upbit.com/exchange?code=CRIX.UPBIT.{0}'>{0}</a>".format(row[1]), #coin_ticker_name - 구매
             # 코인
@@ -196,7 +196,6 @@ def buy_sell_tables():
             locale.format_string("%.2f", row[13], grouping=True), #sell_krw - 현재 원화
             elapsed_time_str(row[2], row[10]), #경과 시간
             convert_unit_2(row[14] * 100), #trail_rate - 등락 비율
-            row[15], #total_krw
             coin_status # 상태
         )
         txt += "</tr>"
