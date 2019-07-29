@@ -97,12 +97,10 @@ class EarlyStopping:
         remote_file = subprocess.getoutput(cmd)
 
         if ".pt" in remote_file:
-            cmd = "ssh -i {0} {1}@{2} 'rm {3}{4}/{5}'".format(
+            cmd = "ssh -i {0} {1}@{2} 'rm {3}'".format(
                 SSH_SCP_TARGET_PEM_FILE_PATH,
                 SSH_SCP_TARGET_ID,
                 REMOTE_TARGET_HOST,
-                REMOTE_TARGET,
-                self.model_type,
                 remote_file
             )
             self.logger.info(cmd)
