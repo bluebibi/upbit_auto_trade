@@ -227,7 +227,45 @@ class Upbit:
             print(x.__class__.__name__)
             return None
 
-    def buy_market_order(self, ticker, price, margin=0.01):
+    def buy_market_order(self, ticker, price):
+        '''
+        시장가 매수
+        :param ticker: 마켓 티커
+        :param price: 주문 가격
+        :return:
+        '''
+        try:
+            url = "https://api.upbit.com/v1/orders"
+            data = {"market": ticker,
+                    "side": "bid",
+                    "price": str(price),
+                    "ord_type": "price"}
+            headers = self._request_headers(data)
+            return _send_post_request(url, headers=headers, data=data)
+        except Exception as x:
+            print(x.__class__.__name__)
+            return None
+
+    def sell_market_order(self, ticker, volume):
+        '''
+        시장가 매도
+        :param ticker: 마켓 티커
+        :param volume: 주문 수량
+        :return:
+        '''
+        try:
+            url = "https://api.upbit.com/v1/orders"
+            data = {"market": ticker,
+                    "side": "bid",
+                    "volume": str(volume),
+                    "ord_type": "market"}
+            headers = self._request_headers(data)
+            return _send_post_request(url, headers=headers, data=data)
+        except Exception as x:
+            print(x.__class__.__name__)
+            return None
+
+    def buy_market_order_old(self, ticker, price, margin=0.01):
         """
         시장가 매수 (호가 조회 후 최우선 매도호가로 주문)
         :param ticker:  티커
@@ -261,7 +299,7 @@ class Upbit:
             print(x.__class__.__name__)
             return None
 
-    def sell_market_order(self, ticker, size):
+    def sell_market_order_old(self, ticker, size):
         """
         시장가 매도 (호가 조회 후 최우선 매수 호가로 주문)
         :param ticker:  티커
@@ -491,8 +529,78 @@ class Upbit:
                 coin_names.append(m['market'].split('-')[1])
         return coin_names
 
+    def get_expected_buy_coin_price_for_krw(self, ticker, krw, transaction_fee_rate):
+        orderbook = self.get_orderbook(tickers=ticker)[0]
+        orderbook_units = orderbook["orderbook_units"]
+        ask_price_lst = []
+        ask_size_lst = []
+        for item in orderbook_units:
+            ask_price_lst.append(item["ask_price"])
+            ask_size_lst.append(item["ask_size"])
 
+        # print(ask_price_lst)
+        # print(ask_size_lst)
 
+        original_krw = krw
+
+        fee = krw * transaction_fee_rate
+        krw = krw - fee
+
+        calc_size_sum = 0.0
+
+        #print(0, krw, calc_size_sum, 0)
+        for i, ask_size in enumerate(ask_size_lst):
+            calc_krw_sum = ask_price_lst[i] * ask_size
+            if calc_krw_sum > krw:
+                calc_size_sum += krw / ask_price_lst[i]
+                krw = krw - krw
+                #print(i+1, krw, calc_size_sum)
+                break
+            else:
+                calc_size_sum += ask_size
+                krw = krw - calc_krw_sum
+                #print(i+1, krw, calc_size_sum)
+
+        calc_price = (original_krw - fee) / calc_size_sum
+
+        # 매수원금: 1000000, 수수료: 500.0, 매수단가: 1823.7691975619496, 확보한 코인수량: 548.0408383561644
+        return original_krw, fee, calc_price, calc_size_sum
+
+    def get_expected_sell_coin_price_for_volume(self, ticker, volume, transaction_fee_rate):
+        orderbook = self.get_orderbook(tickers=ticker)[0]
+        orderbook_units = orderbook["orderbook_units"]
+        bid_price_lst = []
+        bid_size_lst = []
+        for item in orderbook_units:
+            bid_price_lst.append(item["bid_price"])
+            bid_size_lst.append(item["bid_size"])
+
+        # print(bid_price_lst)
+        # print(bid_size_lst)
+
+        calc_krw_sum = 0.0
+        original_volume = volume
+
+        #print(0, volume, calc_krw_sum)
+        for i, bid_size in enumerate(bid_size_lst):
+            if bid_size > volume:
+                calc_krw_sum += bid_price_lst[i] * volume
+                volume = volume - volume
+                #print(i+1, volume, calc_krw_sum)
+                break
+            else:
+                calc_krw_sum += bid_price_lst[i] * bid_size
+                volume = volume - bid_size
+                #print(i+1, volume, calc_krw_sum)
+
+        calc_price = calc_krw_sum / original_volume
+
+        fee = calc_krw_sum * transaction_fee_rate
+
+        calc_krw_sum = calc_krw_sum - fee
+
+        # 매도 코인수량: 548.0408383561644, 매도단가: 1805.0, 수수료: 494.79924644171336, 매도결과금:989103.693636985
+        return original_volume, calc_price, fee, calc_krw_sum
 
 
 

@@ -22,8 +22,11 @@ if os.getcwd().endswith("predict"):
 locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
 
 select_coin_ticker_name_by_status_sql = "SELECT coin_ticker_name FROM BUY_SELL WHERE status=0 or status=1;"
-select_by_datetime = "SELECT * FROM {0} WHERE datetime='{1}';"
-insert_buy_try_coin_info = "INSERT INTO BUY_SELL (coin_ticker_name, buy_datetime, cnn_prob, lstm_prob, buy_price, status) VALUES (?, ?, ?, ?, ?, ?);"
+select_by_datetime = "SELECT close_price FROM {0} WHERE datetime='{1}';"
+select_total_krw = "SELECT total_krw FROM BUY_SELL ORDER BY id DESC LIMIT 1;"
+insert_buy_try_coin_info = "INSERT INTO BUY_SELL (coin_ticker_name, buy_datetime, cnn_prob, lstm_prob, buy_base_price, " \
+                           "buy_krw, buy_fee, buy_price, buy_coin_volume, total_krw, status) VALUES (?, ?, ?, ?, ?, " \
+                           "?, ?, ?, ?, ?, ?);"
 
 
 def get_coin_ticker_name_by_status():
@@ -66,7 +69,7 @@ def get_good_quality_coin_names_for_buy():
 
 
 def get_db_right_time_coin_names():
-    coin_names = {}
+    coin_right_time_info = {}
     now = dt.datetime.now(timezone('Asia/Seoul'))
     now_str = now.strftime(fmt)
     current_time_str = now_str.replace("T", " ")
@@ -77,12 +80,12 @@ def get_db_right_time_coin_names():
         all_coin_names = UPBIT.get_all_coin_names()
         for coin_name in all_coin_names:
             cursor.execute(select_by_datetime.format("KRW_" + coin_name, current_time_str))
-            row = cursor.fetchall()
-            if len(row) == 1:
-                coin_names[coin_name] = current_time_str
+            close_price_ = cursor.fetchall()
+            if close_price_:
+                coin_right_time_info[coin_name] = [close_price_[0], current_time_str]
         conn.commit()
 
-    return coin_names
+    return coin_right_time_info
 
 
 def evaluate_coin_by_models(model, coin_name, model_type):
@@ -103,51 +106,64 @@ def evaluate_coin_by_models(model, coin_name, model_type):
         return -1
 
 
-def insert_buy_coin_info(buy_try_coin_info):
+def insert_buy_coin_info(coin_ticker_name, buy_datetime, cnn_prob, lstm_prob, buy_base_price, buy_krw, buy_fee,
+                         buy_price, buy_coin_volume, total_krw, status):
     msg_str = "*** BUY\n"
     with sqlite3.connect(sqlite3_price_info_db_filename, timeout=10, isolation_level=None, check_same_thread=False) as conn:
         cursor = conn.cursor()
 
-        for coin_ticker_name in buy_try_coin_info:
-            cursor.execute(insert_buy_try_coin_info, (
-                coin_ticker_name,
-                buy_try_coin_info[coin_ticker_name]["right_time"],
-                convert_unit_2(float(buy_try_coin_info[coin_ticker_name]["cnn_prob"])),
-                convert_unit_2(float(buy_try_coin_info[coin_ticker_name]["lstm_prob"])),
-                float(buy_try_coin_info[coin_ticker_name]["buy_price"]),
-                CoinStatus.bought.value
-            ))
-            msg_str += "[{0}, {1}, {2}, {3}, {4}, {5}]\n".format(
-                coin_ticker_name,
-                buy_try_coin_info[coin_ticker_name]["right_time"],
-                convert_unit_2(float(buy_try_coin_info[coin_ticker_name]["cnn_prob"])),
-                convert_unit_2(float(buy_try_coin_info[coin_ticker_name]["lstm_prob"])),
-                locale.format_string("%.2f", float(buy_try_coin_info[coin_ticker_name]["buy_price"]), grouping=True),
-                coin_status_to_hangul(CoinStatus.bought.value)
-            )
+        cursor.execute(insert_buy_try_coin_info, (
+            coin_ticker_name, buy_datetime, cnn_prob, lstm_prob, buy_base_price, buy_krw, buy_fee, buy_price,
+            buy_coin_volume, total_krw, status
+        ))
         conn.commit()
+
+    msg_str += "[{0}, buy_base_price: {1}, buy_price: {2}, buy_coin_volume: {3}, total_krw: {4}]\n".format(
+        coin_ticker_name,
+        locale.format_string("%.2f", float(buy_base_price), grouping=True),
+        locale.format_string("%.2f", float(buy_price), grouping=True),
+        locale.format_string("%.2f", float(buy_coin_volume), grouping=True),
+        total_krw
+    )
+
     return msg_str
+
+
+def get_total_krw():
+    with sqlite3.connect(sqlite3_price_info_db_filename, timeout=10, isolation_level=None,
+                         check_same_thread=False) as conn:
+        cursor = conn.cursor()
+        cursor.execute(select_total_krw)
+
+        total_krw_ = cursor.fetchone()
+        if total_krw_:
+            total_krw = int(total_krw_[0])
+        else:
+            total_krw = INITIAL_TOTAL_KRW
+
+    return total_krw
 
 
 def main():
     good_cnn_models, good_lstm_models = get_good_quality_coin_names_for_buy()
 
-    right_time_coin_names = get_db_right_time_coin_names()
+    right_time_coin_info = get_db_right_time_coin_names()
 
     already_coin_ticker_names = get_coin_ticker_name_by_status()
 
-    target_coin_names = (set(good_cnn_models) & set(good_lstm_models) & set(right_time_coin_names)) - set(already_coin_ticker_names)
+    target_coin_names = (set(good_cnn_models) & set(good_lstm_models) & set(right_time_coin_info)) - set(
+        already_coin_ticker_names)
 
     logger.info("*** CNN: {0}, LSTM: {1}, Right Time Coins: {2}, Target Coins: {3} ***".format(
         len(good_cnn_models),
         len(good_lstm_models),
-        len(right_time_coin_names),
+        len(right_time_coin_info),
         target_coin_names
     ))
 
     if len(target_coin_names) > 0:
         buy_try_coin_info = {}
-        buy_try_coin_names = []
+        buy_try_coin_ticker_names = []
 
         for coin_name in target_coin_names:
             cnn_prob = evaluate_coin_by_models(
@@ -169,24 +185,41 @@ def main():
             if cnn_prob > 0 and lstm_prob > 0:
                 # coin_name --> right_time, prob
                 buy_try_coin_info["KRW-" + coin_name] = {
-                    "right_time": right_time_coin_names[coin_name],
+                    "buy_base_price": right_time_coin_info[coin_name][0],
+                    "right_time": right_time_coin_info[coin_name][1],
                     "cnn_prob": cnn_prob,
                     "lstm_prob": lstm_prob
                 }
-                buy_try_coin_names.append("KRW-" + coin_name)
+                buy_try_coin_ticker_names.append("KRW-" + coin_name)
 
-        if buy_try_coin_names:
-            prices = UPBIT.get_current_price(buy_try_coin_names)
+        if buy_try_coin_ticker_names:
+            for coin_ticker_name in buy_try_coin_ticker_names:
+                current_total_krw = get_total_krw()
+                if current_total_krw - INVEST_KRW > 0:
+                    _, buy_fee, buy_price, buy_coin_volume = UPBIT.get_expected_buy_coin_price_for_krw(
+                        coin_ticker_name,
+                        INVEST_KRW,
+                        TRANSACTION_FEE_RATE
+                    )
 
-            for coin_ticker_name in buy_try_coin_info:
-                buy_try_coin_info[coin_ticker_name]["buy_price"] = prices[coin_ticker_name]
+                    msg_str = insert_buy_coin_info(
+                        coin_ticker_name=coin_ticker_name,
+                        buy_datetime=buy_try_coin_info[coin_ticker_name]['right_time'],
+                        cnn_prob=buy_try_coin_info[coin_ticker_name]['cnn_prob'],
+                        lstm_prob=buy_try_coin_info[coin_ticker_name]['lstm_prob'],
+                        buy_base_price=buy_try_coin_info[coin_ticker_name]['buy_base_price'],
+                        buy_krw=INVEST_KRW,
+                        buy_fee=buy_fee,
+                        buy_price=buy_price,
+                        buy_coin_volume=buy_coin_volume,
+                        total_krw=current_total_krw - INVEST_KRW,
+                        status=CoinStatus.bought.value
+                    )
 
-        if len(buy_try_coin_info) > 0:
-            msg_str = insert_buy_coin_info(buy_try_coin_info)
-            msg_str += " @ " + SOURCE
+                    msg_str += " @ " + SOURCE
 
-            SLACK.send_message("me", msg_str)
-            logger.info("{0}".format(msg_str))
+                    SLACK.send_message("me", msg_str)
+                    logger.info("{0}".format(msg_str))
 
 
 if __name__ == "__main__":

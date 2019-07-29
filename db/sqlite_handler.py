@@ -27,12 +27,14 @@ class SqliteHandler:
             conn.commit()
 
     def create_buy_sell_table(self):
-        with sqlite3.connect(sqlite3_buy_sell_db_filename, timeout=10, isolation_level=None, check_same_thread=False) as conn:
+        with sqlite3.connect(sqlite3_price_info_db_filename, timeout=10, isolation_level=None, check_same_thread=False) as conn:
             cursor = conn.cursor()
             cursor.execute("""
                 CREATE TABLE IF NOT EXISTS BUY_SELL (id INTEGER PRIMARY KEY AUTOINCREMENT, 
-                coin_ticker_name TEXT, buy_datetime DATETIME, cnn_prob FLOAT, lstm_prob FLOAT, buy_price FLOAT, 
-                trail_datetime DATETIME, trail_price FLOAT, trail_rate FLOAT, status TINYINT
+                coin_ticker_name TEXT, buy_datetime DATETIME, cnn_prob FLOAT, lstm_prob FLOAT, buy_base_price FLOAT,
+                buy_krw INT, buy_fee INT, buy_price FLOAT, buy_coin_volume FLOAT, 
+                trail_datetime DATETIME, trail_price FLOAT, sell_fee INT, sell_krw INT, trail_rate FLOAT, 
+                total_krw INT, status TINYINT
                 )""")
 
             conn.commit()

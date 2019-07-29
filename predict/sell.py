@@ -11,8 +11,9 @@ logger = get_logger("sell_logger")
 if os.getcwd().endswith("predict"):
     os.chdir("..")
 
-select_all_bought_coin_names_sql = "SELECT * FROM BUY_SELL WHERE status=? or status=?;"
-update_trail_coin_info_sql = "UPDATE BUY_SELL SET trail_datetime=?, trail_price=?, trail_rate=?, status=? WHERE " \
+select_all_bought_or_trailed_coin_names_sql = "SELECT * FROM BUY_SELL WHERE status=? or status=?;"
+update_trail_coin_info_sql = "UPDATE BUY_SELL SET trail_datetime=?, trail_price=?, sell_fee=?, " \
+                             "sell_krw=?, trail_rate=?, total_krw=?, status=? WHERE " \
                              "coin_ticker_name=? and buy_datetime=?;"
 
 
@@ -21,90 +22,101 @@ class Seller:
         with sqlite3.connect(sqlite3_price_info_db_filename, timeout=10, isolation_level=None, check_same_thread=False) as conn:
             cursor = conn.cursor()
             cursor.execute(
-                select_all_bought_coin_names_sql, (CoinStatus.bought.value, CoinStatus.trailed.value)
+                select_all_bought_or_trailed_coin_names_sql, (CoinStatus.bought.value, CoinStatus.trailed.value)
             )
 
             buy_trail_coin_info = {}
-            buy_trail_coin_names = []
             rows = cursor.fetchall()
             conn.commit()
 
         for row in rows:
             coin_ticker_name = row[1]
             buy_datetime = dt.datetime.strptime(row[2], fmt.replace("T", " "))
-            cnn_prob = float(row[3])
-            lstm_prob = float(row[4])
-            buy_price = float(row[5])
+
             buy_trail_coin_info[coin_ticker_name] = {
                 "buy_datetime_str": row[2],
                 "buy_datetime": buy_datetime,
-                "cnn_prob": cnn_prob,
-                "lstm_prob": lstm_prob,
-                "buy_price": buy_price
+                "cnn_prob": float(row[3]),
+                "lstm_prob": float(row[4]),
+                "buy_base_price": float(row[5]),
+                "buy_krw": int(row[6]),
+                "buy_fee": int(row[7]),
+                "buy_price": float(row[8]),
+                "buy_coin_volume": float(row[9]),
+                "total_krw": int(row[15]),
             }
-            buy_trail_coin_names.append(coin_ticker_name)
 
+        if len(buy_trail_coin_info) > 0:
+            self.trail(buy_trail_coin_info)
+
+    def trail(self, buy_trail_coin_info):
         now = dt.datetime.now(timezone('Asia/Seoul'))
         now_str = now.strftime(fmt)
         current_time_str = now_str.replace("T", " ")
         now_datetime = dt.datetime.strptime(now_str, fmt)
 
         msg_str = ""
-        if buy_trail_coin_names:
-            prices = UPBIT.get_current_price(buy_trail_coin_names)
-            trail_coin_info = {}
-            for coin_ticker_name in buy_trail_coin_info:
-                trail_price = float(prices[coin_ticker_name])
-                buy_price = buy_trail_coin_info[coin_ticker_name]["buy_price"]
-                trail_rate = (trail_price - buy_price) / buy_price
 
-                buy_datetime = buy_trail_coin_info[coin_ticker_name]["buy_datetime"]
-                time_diff = now_datetime - buy_datetime
-                time_diff_minutes = time_diff.seconds / 60
+        trail_coin_info = {}
+        for coin_ticker_name in buy_trail_coin_info:
 
-                if trail_rate > SELL_RATE:
-                    coin_status = CoinStatus.success_sold.value
-                else:
-                    if time_diff_minutes > FUTURE_TARGET_SIZE * 10:
-                        if trail_rate > TRANSACTION_FEE_RATE:
-                            coin_status = CoinStatus.gain_sold.value
-                        else:
-                            coin_status = CoinStatus.loss_sold.value
+            _, trail_price, sell_fee, sell_krw = UPBIT.get_expected_sell_coin_price_for_volume(
+                coin_ticker_name,
+                buy_trail_coin_info[coin_ticker_name]["buy_coin_volume"],
+                TRANSACTION_FEE_RATE
+            )
+
+            buy_krw = buy_trail_coin_info[coin_ticker_name]["buy_krw"]
+            trail_rate = (sell_krw - buy_krw) / buy_krw
+
+            buy_datetime = buy_trail_coin_info[coin_ticker_name]["buy_datetime"]
+            time_diff = now_datetime - buy_datetime
+            time_diff_minutes = time_diff.seconds / 60
+
+            if trail_rate > SELL_RATE:
+                coin_status = CoinStatus.success_sold.value
+            else:
+                if time_diff_minutes > FUTURE_TARGET_SIZE * 10:
+                    if trail_rate > TRANSACTION_FEE_RATE:
+                        coin_status = CoinStatus.gain_sold.value
                     else:
-                        coin_status = CoinStatus.trailed.value
+                        coin_status = CoinStatus.loss_sold.value
+                else:
+                    coin_status = CoinStatus.trailed.value
 
-                trail_coin_info[coin_ticker_name] = {
-                    "trail_datetime": current_time_str,
-                    "trail_price": trail_price,
-                    "trail_rate": trail_rate,
-                    "status": coin_status,
-                    "buy_datetime": buy_trail_coin_info[coin_ticker_name]["buy_datetime_str"]
-                }
+            self.update_coin_info(
+                trail_datetime=current_time_str,
+                trail_price=trail_price,
+                sell_fee=sell_fee,
+                sell_krw=sell_krw,
+                trail_rate=trail_rate,
+                total_krw=buy_trail_coin_info[coin_ticker_name]["buy_coin_volume"] + sell_krw,
+                status=coin_status,
+                coin_ticker_name=coin_ticker_name,
+                buy_datetime=buy_trail_coin_info[coin_ticker_name]["buy_datetime_str"]
+            )
 
-                if coin_status == CoinStatus.success_sold.value or coin_status == CoinStatus.gain_sold.value:
-                    msg_str += "[{0}, {1}, {2}%, {3}]\n".format(
-                        coin_ticker_name,
-                        trail_price,
-                        convert_unit_2(trail_rate * 100),
-                        coin_status_to_hangul(coin_status)
-                    )
+            if coin_status == CoinStatus.success_sold.value or coin_status == CoinStatus.gain_sold.value:
+                msg_str += "[{0}, trail_price: {1}, sell_krw: {2}, trail_rate: {3}%, status: {4}]\n".format(
+                    coin_ticker_name,
+                    trail_price,
+                    sell_krw,
+                    convert_unit_2(trail_rate * 100),
+                    coin_status_to_hangul(coin_status)
+                )
 
-            self.update_coin_info(trail_coin_info)
+        self.update_coin_info(trail_coin_info)
         return msg_str
 
-    def update_coin_info(self, trail_coin_info):
+    def update_coin_info(self, trail_datetime, trail_price, sell_fee, sell_krw, trail_rate, total_krw, status,
+                         coin_ticker_name, buy_datetime):
         with sqlite3.connect(sqlite3_price_info_db_filename, timeout=10, isolation_level=None, check_same_thread=False) as conn:
             cursor = conn.cursor()
 
-            for coin_ticker_name in trail_coin_info:
-                cursor.execute(update_trail_coin_info_sql, (
-                    trail_coin_info[coin_ticker_name]["trail_datetime"],
-                    trail_coin_info[coin_ticker_name]["trail_price"],
-                    trail_coin_info[coin_ticker_name]["trail_rate"],
-                    trail_coin_info[coin_ticker_name]["status"],
-                    coin_ticker_name,
-                    trail_coin_info[coin_ticker_name]["buy_datetime"]
-                ))
+            cursor.execute(update_trail_coin_info_sql, (
+                trail_datetime, trail_price, sell_fee, sell_krw, trail_rate, total_krw, status,
+                coin_ticker_name, buy_datetime
+            ))
             conn.commit()
 
     def try_to_sell(self):

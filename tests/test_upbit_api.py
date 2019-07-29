@@ -37,7 +37,7 @@ class UpBitAPITestCase(unittest.TestCase):
 
     def test_get_order_book(self):
         # print(get_orderbook(tickers=["KRW-BTC"]))
-        pp.pprint(self.upbit.get_orderbook(tickers=["KRW-BTC", "KRW-XRP"]))
+        pp.pprint(self.upbit.get_orderbook(tickers="KRW-BTC"))
 
     def test_get_market_index(self):
         pp.pprint(self.upbit.get_market_index())
@@ -53,13 +53,21 @@ class UpBitAPITestCase(unittest.TestCase):
         pp.pprint(self.upbit.get_market_index())
         pass
 
+    def test_get_expected_buy_coin_price_for_krw(self):
+        expected_price = self.upbit.get_expected_buy_coin_price_for_krw("KRW-OMG", 1000000, TRANSACTION_FEE_RATE)
+        print(expected_price)
+
+    def test_get_expected_sell_coin_price_for_volume(self):
+        expected_price = self.upbit.get_expected_sell_coin_price_for_volume("KRW-OMG", 548.7964360338357, TRANSACTION_FEE_RATE)
+        print(expected_price)
+
     def test_get_balance(self):
-        pp.pprint(upbit.get_balances())
+        pp.pprint(self.upbit.get_balances())
 
         # 원화 잔고 조회
-        print(upbit.get_balance(ticker="KRW"))
-        print(upbit.get_balance(ticker="KRW-BTC"))
-        print(upbit.get_balance(ticker="KRW-XRP"))
+        print(self.upbit.get_balance(ticker="KRW"))
+        print(self.upbit.get_balance(ticker="KRW-BTC"))
+        print(self.upbit.get_balance(ticker="KRW-XRP"))
 
         # 매도
         # print(upbit.sell_limit_order("KRW-XRP", 1000, 20))
