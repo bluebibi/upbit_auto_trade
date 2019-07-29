@@ -50,8 +50,8 @@ SYSTEM_USERNAME = config['USER']['system_username']
 SYSTEM_PASSWORD = config['USER']['system_password']
 EXCHANGE = config['USER']['exchange']
 SOURCE = config['USER']['source']
-INITIAL_TOTAL_KRW = config['USER']['initial_total_krw']
-INVEST_KRW = config['USER']['invest_krw']
+INITIAL_TOTAL_KRW = int(config['USER']['initial_total_krw'])
+INVEST_KRW = int(config['USER']['invest_krw'])
 
 # UPBIT
 CLIENT_ID_UPBIT = config['UPBIT']['access_key']
