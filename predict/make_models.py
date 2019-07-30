@@ -314,8 +314,8 @@ def main(model_type):
     elapsed_time_str = time.strftime("%H:%M:%S", time.gmtime(elapsed_time))
 
     logger.info("####################################################################")
-    logger.info("Coin Name with High Quality Model:", coin_names_high_quality_models)
-    logger.info("Elapsed Time:", elapsed_time_str)
+    logger.info("Coin Name with High Quality Model: {0}".format(coin_names_high_quality_models))
+    logger.info("Elapsed Time: {0}".format(elapsed_time_str))
     logger.info("####################################################################")
 
     slack_msg = "MODEL TYPE:{0} - HIGH QUALITY MODELS:{1} - ELAPSED_TIME:{2} @ {3}".format(
