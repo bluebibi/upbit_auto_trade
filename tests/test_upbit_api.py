@@ -1,8 +1,11 @@
 import unittest
 import numpy as np
+from pytz import timezone
+
 from common.global_variables import *
 from upbit.upbit_api import Upbit
 import pprint
+import datetime as dt
 
 pp = pprint.PrettyPrinter(indent=2)
 
@@ -36,8 +39,31 @@ class UpBitAPITestCase(unittest.TestCase):
              'KRW-OST', 'KRW-STRAT', 'KRW-IOST', 'KRW-ONT', 'KRW-BSV']))
 
     def test_get_order_book(self):
-        # print(get_orderbook(tickers=["KRW-BTC"]))
-        pp.pprint(self.upbit.get_orderbook(tickers="KRW-BTC"))
+        now = dt.datetime.now(timezone('Asia/Seoul'))
+        now_str = now.strftime(fmt)
+        current_time_str = now_str.replace("T", " ")
+        current_time_str = current_time_str[:-3] + ":00"
+
+        order_book = self.upbit.get_orderbook(tickers="KRW-BTC")
+
+        order_book_units = order_book["orderbook_units"]
+        ask_price_lst = []
+        ask_size_lst = []
+        bid_price_lst = []
+        bid_size_lst = []
+        for item in order_book_units:
+            ask_price_lst.append(item["ask_price"])
+            ask_size_lst.append(item["ask_size"])
+            bid_price_lst.append(item["bid_price"])
+            bid_size_lst.append(item["bid_size"])
+
+        timestamp = order_book['timestamp']
+        total_ask_size = order_book['total_ask_size']
+        total_bid_size = order_book['total_bid_size']
+
+
+        print(current_time_str)
+        print(order_book)
 
     def test_get_market_index(self):
         pp.pprint(self.upbit.get_market_index())
