@@ -10,7 +10,7 @@ sys.path.append(PROJECT_HOME)
 
 from common.global_variables import *
 from common.logger import get_logger
-
+from datetime import timedelta
 
 logger = get_logger("upbit_order_book_recorder_logger")
 
@@ -26,12 +26,42 @@ order_book_insert_sql = "INSERT INTO KRW_{0}_ORDER_BOOK VALUES(NULL, "\
                         "?, ?, ?, ?, ?, ?, ?, ?, ?, ?," \
                         "?, ?, ?, ?, ?);"
 
-select_by_datetime = "SELECT * FROM KRW_{0}_ORDER_BOOK WHERE base_datetime='{1}';"
-
+select_by_start_base_datetime = "SELECT base_datetime FROM KRW_{0}_ORDER_BOOK ORDER BY collect_timestamp ASC LIMIT 1;"
+select_by_datetime = "SELECT base_datetime FROM KRW_{0}_ORDER_BOOK WHERE base_datetime=? LIMIT 1;"
 
 class UpbitOrderBookRecorder:
     def __init__(self):
         self.coin_names = UPBIT.get_all_coin_names()
+
+    def test_order_book_consecutiveness(self, coin_name):
+        with sqlite3.connect(sqlite3_order_book_db_filename, timeout=10, isolation_level=None,
+                             check_same_thread=False) as conn:
+            cursor = conn.cursor()
+            cursor.execute(select_by_start_base_datetime.format(coin_name))
+            start_base_datetime_str = cursor.fetchone()[0]
+
+            base_datetime = dt.datetime.strptime(start_base_datetime_str, fmt.replace("T", " "))
+
+            last_base_datetime_str = None
+            while True:
+                next_base_datetime = base_datetime + timedelta(minutes=1)
+                next_base_datetime_str = dt.datetime.strftime(next_base_datetime, fmt.replace("T", " "))
+                cursor.execute(select_by_datetime.format(coin_name), (next_base_datetime_str, ))
+                next_base_datetime_str = cursor.fetchone()
+
+                if not next_base_datetime_str:
+                    break
+
+                next_base_datetime_str = next_base_datetime_str[0]
+                last_base_datetime_str = next_base_datetime_str
+                base_datetime = dt.datetime.strptime(next_base_datetime_str, fmt.replace("T", " "))
+
+            print("{0:5s} - Start Base Datetime: {1}, Last Base Datetime: {2}".format(
+                coin_name, start_base_datetime_str, last_base_datetime_str
+            ))
+
+            conn.commit()
+
 
     def record(self, base_datetime, coin_ticker_name):
         time_str_hour = base_datetime.split(" ")[1].split(":")[0]

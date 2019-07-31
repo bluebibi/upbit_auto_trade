@@ -7,6 +7,9 @@ from upbit.upbit_api import Upbit
 import pprint
 import datetime as dt
 
+
+from upbit.upbit_orderbook_recorder import UpbitOrderBookRecorder
+
 pp = pprint.PrettyPrinter(indent=2)
 
 
@@ -37,6 +40,14 @@ class UpBitAPITestCase(unittest.TestCase):
         pp.pprint(self.upbit.get_current_price(
             ['KRW-GAS', 'KRW-MOC', 'KRW-IQ', 'KRW-WAX', 'KRW-NEO', 'KRW-AERGO', 'KRW-MEDX', 'KRW-XMR',
              'KRW-OST', 'KRW-STRAT', 'KRW-IOST', 'KRW-ONT', 'KRW-BSV']))
+
+    def test_order_book_consecutiveness(self):
+        coin_names = self.upbit.get_all_coin_names();
+
+        upbit_order_book_recorder = UpbitOrderBookRecorder()
+
+        for coin_name in coin_names:
+            upbit_order_book_recorder.test_order_book_consecutiveness(coin_name)
 
     def test_get_order_book(self):
         now = dt.datetime.now(timezone('Asia/Seoul'))
