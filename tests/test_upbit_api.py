@@ -52,7 +52,14 @@ class UpBitAPITestCase(unittest.TestCase):
         upbit_order_book_recorder = UpbitOrderBookRecorder()
 
         for coin_name in coin_names:
-            upbit_order_book_recorder.test_order_book_consecutiveness(coin_name)
+            start_base_datetime_str, last_base_datetime_str = upbit_order_book_recorder.test_order_book_consecutiveness(
+                coin_name=coin_name,
+                start_base_datetime_str="2019-07-31 00:20:00"
+            )
+
+            print("{0:5s} - Start Base Datetime: {1}, Last Base Datetime: {2}".format(
+                coin_name, start_base_datetime_str, last_base_datetime_str
+            ), flush=True)
 
     def test_get_order_book(self):
         now = dt.datetime.now(timezone('Asia/Seoul'))

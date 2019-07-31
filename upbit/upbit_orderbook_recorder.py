@@ -27,18 +27,22 @@ order_book_insert_sql = "INSERT INTO KRW_{0}_ORDER_BOOK VALUES(NULL, "\
                         "?, ?, ?, ?, ?);"
 
 select_by_start_base_datetime = "SELECT base_datetime FROM KRW_{0}_ORDER_BOOK ORDER BY collect_timestamp ASC LIMIT 1;"
+select_by_final_base_datetime = "SELECT base_datetime FROM KRW_{0}_ORDER_BOOK ORDER BY collect_timestamp DESC LIMIT 1;"
+
 select_by_datetime = "SELECT base_datetime FROM KRW_{0}_ORDER_BOOK WHERE base_datetime=? LIMIT 1;"
 
 class UpbitOrderBookRecorder:
     def __init__(self):
         self.coin_names = UPBIT.get_all_coin_names()
 
-    def test_order_book_consecutiveness(self, coin_name):
+    def test_order_book_consecutiveness(self, coin_name=None, start_base_datetime_str=None):
         with sqlite3.connect(sqlite3_order_book_db_filename, timeout=10, isolation_level=None,
                              check_same_thread=False) as conn:
             cursor = conn.cursor()
-            cursor.execute(select_by_start_base_datetime.format(coin_name))
-            start_base_datetime_str = cursor.fetchone()[0]
+
+            if start_base_datetime_str == None:
+                cursor.execute(select_by_start_base_datetime.format(coin_name))
+                start_base_datetime_str = cursor.fetchone()[0]
 
             base_datetime = dt.datetime.strptime(start_base_datetime_str, fmt.replace("T", " "))
 
@@ -56,11 +60,9 @@ class UpbitOrderBookRecorder:
                 last_base_datetime_str = next_base_datetime_str
                 base_datetime = dt.datetime.strptime(next_base_datetime_str, fmt.replace("T", " "))
 
-            print("{0:5s} - Start Base Datetime: {1}, Last Base Datetime: {2}".format(
-                coin_name, start_base_datetime_str, last_base_datetime_str
-            ))
-
             conn.commit()
+
+        return start_base_datetime_str, last_base_datetime_str
 
 
     def record(self, base_datetime, coin_ticker_name):
