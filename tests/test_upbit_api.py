@@ -109,5 +109,6 @@ class UpBitAPITestCase(unittest.TestCase):
         # 주문 취소
         # print(upbit.cancel_order('82e211da-21f6-4355-9d76-83e7248e2c0c'))
 
+
 if __name__ == '__main__':
     unittest.main()
