@@ -195,7 +195,7 @@ if __name__ == "__main__":
             base_datetime=base_datetime,
             coin_ticker_name="KRW-" + coin_name
         )
-        time.time(0.2)
+        time.sleep(0.2)
 
     upbit_order_book_recorder.insert_order_book(order_book_info)
 
