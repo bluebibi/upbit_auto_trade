@@ -145,9 +145,16 @@ def requests_retry_session(retries=5, backoff_factor=0.3, status_forcelist=(500,
 
 def _call_public_api(url, **kwargs):
     try:
-        time.sleep(0.05)
-        resp = requests_retry_session().get(url, params=kwargs)
-        contents = resp.json()
+        while True:
+            time.sleep(0.05)
+            resp = requests_retry_session().get(url, params=kwargs)
+            contents = resp.json()
+
+            if contents and 'error' in contents and contents['error']['message'] == 'Too many API requests.':
+                time.sleep(0.05)
+            else:
+                break
+
         return contents
     except Exception as x:
         print("It failed", x.__class__.__name__)
