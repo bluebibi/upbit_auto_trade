@@ -2,6 +2,11 @@ import unittest
 import numpy as np
 from pytz import timezone
 
+import sys, os
+idx = os.getcwd().index("upbit_auto_trade")
+PROJECT_HOME = os.getcwd()[:idx] + "upbit_auto_trade/"
+sys.path.append(PROJECT_HOME)
+
 from common.global_variables import *
 from upbit.upbit_api import Upbit
 import pprint
@@ -44,7 +49,7 @@ class UpBitAPITestCase(unittest.TestCase):
         current_time_str = now_str.replace("T", " ")
         current_time_str = current_time_str[:-3] + ":00"
 
-        order_book = self.upbit.get_orderbook(tickers="KRW-BTC")
+        order_book = self.upbit.get_orderbook(tickers="KRW-BTC")[0]
 
         order_book_units = order_book["orderbook_units"]
         ask_price_lst = []
