@@ -4,6 +4,9 @@ import datetime as dt
 import time
 
 import sys, os
+
+from common.utils import convert_to_daily_timestamp
+
 idx = os.getcwd().index("upbit_auto_trade")
 PROJECT_HOME = os.getcwd()[:idx] + "upbit_auto_trade/"
 sys.path.append(PROJECT_HOME)
@@ -26,8 +29,8 @@ order_book_insert_sql = "INSERT INTO KRW_{0}_ORDER_BOOK VALUES(NULL, "\
                         "?, ?, ?, ?, ?, ?, ?, ?, ?, ?," \
                         "?, ?, ?, ?, ?);"
 
-select_by_start_base_datetime = "SELECT base_datetime FROM KRW_{0}_ORDER_BOOK ORDER BY collect_timestamp ASC LIMIT 1;"
-select_by_final_base_datetime = "SELECT base_datetime FROM KRW_{0}_ORDER_BOOK ORDER BY collect_timestamp DESC LIMIT 1;"
+select_by_start_base_datetime = "SELECT base_datetime FROM KRW_{0}_ORDER_BOOK ORDER BY collect_timestamp ASC, base_datetime ASC LIMIT 1;"
+select_by_final_base_datetime = "SELECT base_datetime FROM KRW_{0}_ORDER_BOOK ORDER BY collect_timestamp DESC, base_datetime DESC LIMIT 1;"
 
 select_by_datetime = "SELECT base_datetime FROM KRW_{0}_ORDER_BOOK WHERE base_datetime=? LIMIT 1;"
 
@@ -35,16 +38,36 @@ class UpbitOrderBookRecorder:
     def __init__(self):
         self.coin_names = UPBIT.get_all_coin_names()
 
-    def test_order_book_consecutiveness(self, coin_name=None, start_base_datetime_str=None):
+    def get_order_book_start_and_final(self, coin_name):
         with sqlite3.connect(sqlite3_order_book_db_filename, timeout=10, isolation_level=None,
                              check_same_thread=False) as conn:
             cursor = conn.cursor()
 
-            if start_base_datetime_str == None:
+            cursor.execute(select_by_start_base_datetime.format(coin_name))
+            start_base_datetime_str = cursor.fetchone()[0]
+
+            cursor.execute(select_by_final_base_datetime.format(coin_name))
+            final_base_datetime_str = cursor.fetchone()[0]
+
+            conn.commit()
+        return start_base_datetime_str, final_base_datetime_str
+
+    def get_order_book_consecutiveness(self, coin_name=None, start_base_datetime_str=None):
+        with sqlite3.connect(sqlite3_order_book_db_filename, timeout=10, isolation_level=None,
+                             check_same_thread=False) as conn:
+            cursor = conn.cursor()
+
+            if start_base_datetime_str is None:
                 cursor.execute(select_by_start_base_datetime.format(coin_name))
                 start_base_datetime_str = cursor.fetchone()[0]
 
-            base_datetime = dt.datetime.strptime(start_base_datetime_str, fmt.replace("T", " "))
+            cursor.execute(select_by_datetime.format(coin_name), (start_base_datetime_str,))
+            start_base_datetime_str = cursor.fetchone()
+
+            if start_base_datetime_str is None:
+                return None
+
+            base_datetime = dt.datetime.strptime(start_base_datetime_str[0], fmt.replace("T", " "))
 
             last_base_datetime_str = None
             while True:
@@ -62,20 +85,11 @@ class UpbitOrderBookRecorder:
 
             conn.commit()
 
-        return start_base_datetime_str, last_base_datetime_str
+        return last_base_datetime_str
 
 
     def record(self, base_datetime, coin_ticker_name):
-        time_str_hour = base_datetime.split(" ")[1].split(":")[0]
-        time_str_minute = base_datetime.split(" ")[1].split(":")[1]
-
-        if time_str_hour[0] == "0":
-            time_str_hour = time_str_hour[1:]
-
-        if time_str_minute[0] == "0":
-            time_str_minute = time_str_minute[1:]
-
-        daily_base_timestamp = int(time_str_hour) * 100 + int(time_str_minute)
+        daily_base_timestamp = convert_to_daily_timestamp(base_datetime)
 
         order_book = UPBIT.get_orderbook(tickers=coin_ticker_name)[0]
 

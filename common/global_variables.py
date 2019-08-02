@@ -77,14 +77,8 @@ NUM_EPOCHS = int(config['TRAIN']['num_epochs'])
 WINDOW_SIZE = int(config['DATA']['window_size'])
 FUTURE_TARGET_SIZE = int(config['DATA']['future_target_size'])
 UP_RATE = float(config['DATA']['up_rate'])
-TRAIN_COLS_FULL = config.getboolean('DATA', 'train_cols_full')
-if TRAIN_COLS_FULL:
-    TRAIN_COLS = ["open_price", "high_price", "low_price", "close_price", "volume", "total_ask_size",
-              "total_bid_size", "btmi", "btmi_rate", "btai", "btai_rate"]
-else:
-    TRAIN_COLS = ["open_price", "high_price", "low_price", "close_price", "volume"]
 
-INPUT_SIZE = len(TRAIN_COLS) + 5
+INPUT_SIZE = 125 # 1 (daily_base_timestamp) + 30 (ask_price) + 30 (ask_price_btc) + 30 (bid_price) + 30 (bid_price_btc) + 2 (total ask, total bid) + 2 (total_btc ask, total_btc bid)
 
 VERBOSE = True
 

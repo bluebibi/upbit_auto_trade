@@ -17,44 +17,25 @@ class CNN(nn.Module):
     def __init__(self, input_width, input_height):
         super(CNN, self).__init__()
 
-        if TRAIN_COLS_FULL:
-            self.layer = nn.Sequential(
-                nn.Conv2d(in_channels=1, out_channels=16, kernel_size=2),   # [batch_size,1,28,28] -> [batch_size,16,24,24]
-                nn.BatchNorm2d(16),
-                nn.LeakyReLU(),
-                nn.Conv2d(in_channels=16, out_channels=32, kernel_size=2),  # [batch_size,16,24,24] -> [batch_size,32,20,20]
-                nn.BatchNorm2d(32),
-                nn.LeakyReLU(),
-                nn.MaxPool2d(kernel_size=2, stride=1),                      # [batch_size,32,20,20] -> [batch_size,32,10,10]
-                nn.Conv2d(in_channels=32, out_channels=64, kernel_size=2),  # [batch_size,32,10,10] -> [batch_size,64,6,6]
-                nn.BatchNorm2d(64),
-                nn.LeakyReLU(),
-                nn.MaxPool2d(kernel_size=2, stride=1)                       # [batch_size,64,6,6] -> [batch_size,64,3,3]
-            )
+        self.layer = nn.Sequential(
+            nn.Conv2d(in_channels=1, out_channels=16, kernel_size=2),   # [batch_size,1,28,28] -> [batch_size,16,24,24]
+            nn.BatchNorm2d(16),
+            nn.LeakyReLU(),
+            nn.Conv2d(in_channels=16, out_channels=32, kernel_size=2),  # [batch_size,16,24,24] -> [batch_size,32,20,20]
+            nn.BatchNorm2d(32),
+            nn.LeakyReLU(),
+            nn.MaxPool2d(kernel_size=2, stride=1),                      # [batch_size,32,20,20] -> [batch_size,32,10,10]
+            nn.Conv2d(in_channels=32, out_channels=64, kernel_size=2),  # [batch_size,32,10,10] -> [batch_size,64,6,6]
+            nn.BatchNorm2d(64),
+            nn.LeakyReLU(),
+            nn.MaxPool2d(kernel_size=2, stride=1)                       # [batch_size,64,6,6] -> [batch_size,64,3,3]
+        )
 
-            w, h = get_conv2d_size(w=input_width, h=input_height, kernel_size=2, padding_size=0, stride=1)
-            w, h = get_conv2d_size(w=w, h=h, kernel_size=2, padding_size=0, stride=1)
-            w, h = get_pool2d_size(w=w, h=h, kernel_size=2, stride=1)
-            w, h = get_conv2d_size(w=w, h=h, kernel_size=2, padding_size=0, stride=1)
-            w, h = get_pool2d_size(w=w, h=h, kernel_size=2, stride=1)
-        else:
-            self.layer = nn.Sequential(
-                nn.Conv2d(in_channels=1, out_channels=16, kernel_size=2),   # [batch_size,1,28,28] -> [batch_size,16,24,24]
-                nn.BatchNorm2d(16),
-                nn.LeakyReLU(),
-                nn.Conv2d(in_channels=16, out_channels=32, kernel_size=2),  # [batch_size,16,24,24] -> [batch_size,32,20,20]
-                nn.BatchNorm2d(32),
-                nn.LeakyReLU(),
-                nn.MaxPool2d(kernel_size=2, stride=1),                      # [batch_size,32,20,20] -> [batch_size,32,10,10]
-                nn.Conv2d(in_channels=32, out_channels=64, kernel_size=2),  # [batch_size,32,10,10] -> [batch_size,64,6,6]
-                nn.BatchNorm2d(64),
-                nn.LeakyReLU()
-            )
-
-            w, h = get_conv2d_size(w=input_width, h=input_height, kernel_size=2, padding_size=0, stride=1)
-            w, h = get_conv2d_size(w=w, h=h, kernel_size=2, padding_size=0, stride=1)
-            w, h = get_pool2d_size(w=w, h=h, kernel_size=2, stride=1)
-            w, h = get_conv2d_size(w=w, h=h, kernel_size=2, padding_size=0, stride=1)
+        w, h = get_conv2d_size(w=input_width, h=input_height, kernel_size=2, padding_size=0, stride=1)
+        w, h = get_conv2d_size(w=w, h=h, kernel_size=2, padding_size=0, stride=1)
+        w, h = get_pool2d_size(w=w, h=h, kernel_size=2, stride=1)
+        w, h = get_conv2d_size(w=w, h=h, kernel_size=2, padding_size=0, stride=1)
+        w, h = get_pool2d_size(w=w, h=h, kernel_size=2, stride=1)
 
         self.fc_layer = nn.Sequential(
             nn.Linear(w * h * 64, 200),

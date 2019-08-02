@@ -1,8 +1,13 @@
+import sqlite3
+import time
 import unittest
 import numpy as np
 from pytz import timezone
 
 import sys, os
+
+from common.utils import convert_to_daily_timestamp
+
 idx = os.getcwd().index("upbit_auto_trade")
 PROJECT_HOME = os.getcwd()[:idx] + "upbit_auto_trade/"
 sys.path.append(PROJECT_HOME)
@@ -12,6 +17,9 @@ from upbit.upbit_api import Upbit
 import pprint
 import datetime as dt
 
+from common.logger import get_logger
+
+logger = get_logger("test_upbit")
 
 from upbit.upbit_orderbook_recorder import UpbitOrderBookRecorder
 
@@ -46,20 +54,104 @@ class UpBitAPITestCase(unittest.TestCase):
             ['KRW-GAS', 'KRW-MOC', 'KRW-IQ', 'KRW-WAX', 'KRW-NEO', 'KRW-AERGO', 'KRW-MEDX', 'KRW-XMR',
              'KRW-OST', 'KRW-STRAT', 'KRW-IOST', 'KRW-ONT', 'KRW-BSV']))
 
+
+
+    #### 매우 중요 <-- Missing Data 처리
     def test_order_book_consecutiveness(self):
+        print()
         coin_names = self.upbit.get_all_coin_names();
+
+        order_book_insert_sql = "INSERT INTO KRW_{0}_ORDER_BOOK VALUES(NULL, " \
+                                "?, ?, ?, ?, ?, ?, ?, ?, ?, ?," \
+                                "?, ?, ?, ?, ?, ?, ?, ?, ?, ?," \
+                                "?, ?, ?, ?, ?, ?, ?, ?, ?, ?," \
+                                "?, ?, ?, ?, ?, ?, ?, ?, ?, ?," \
+                                "?, ?, ?, ?, ?, ?, ?, ?, ?, ?," \
+                                "?, ?, ?, ?, ?, ?, ?, ?, ?, ?," \
+                                "?, ?, ?, ?, ?);"
+
+        select_by_datetime = "SELECT * FROM KRW_{0}_ORDER_BOOK WHERE base_datetime=? LIMIT 1;"
 
         upbit_order_book_recorder = UpbitOrderBookRecorder()
 
-        for coin_name in coin_names:
-            start_base_datetime_str, last_base_datetime_str = upbit_order_book_recorder.test_order_book_consecutiveness(
-                coin_name=coin_name,
-                start_base_datetime_str="2019-07-31 00:20:00"
-            )
 
-            print("{0:5s} - Start Base Datetime: {1}, Last Base Datetime: {2}".format(
-                coin_name, start_base_datetime_str, last_base_datetime_str
+        for coin_name in coin_names:
+            start_base_datetime_str, final_base_datetime_str = upbit_order_book_recorder.get_order_book_start_and_final(coin_name)
+            print("{0:5s} - Start: {1}, Final: {2}".format(
+                coin_name,
+                start_base_datetime_str,
+                final_base_datetime_str
             ), flush=True)
+
+            missing_count = 0
+            while True:
+                last_base_datetime_str = upbit_order_book_recorder.get_order_book_consecutiveness(
+                    coin_name=coin_name,
+                    start_base_datetime_str=start_base_datetime_str
+                )
+
+                if last_base_datetime_str == final_base_datetime_str:
+                    print("{0:5s} - Start Base Datetime: {1}, Last Base Datetime: {2}".format(
+                        coin_name, start_base_datetime_str, last_base_datetime_str
+                    ), flush=True)
+                    break
+
+                if last_base_datetime_str is None:
+                    missing_count += 1
+                    print("{0:5s} - Start Base Datetime: {1} - Missing: {2}".format(
+                        coin_name, start_base_datetime_str, missing_count
+                    ), flush=True)
+                    previous_base_datetime = dt.datetime.strptime(start_base_datetime_str, fmt.replace("T", " "))
+                    previous_base_datetime = previous_base_datetime - dt.timedelta(minutes=1)
+                    previous_base_datetime_str = dt.datetime.strftime(previous_base_datetime, fmt.replace("T", " "))
+
+
+                    ### SWITCH
+                    #self.insert_missing_record(select_by_datetime, coin_name, previous_base_datetime_str, order_book_insert_sql, start_base_datetime_str)
+
+                    start_base_datetime = dt.datetime.strptime(start_base_datetime_str, fmt.replace("T", " "))
+                    start_base_datetime = start_base_datetime + dt.timedelta(minutes=1)
+                    start_base_datetime_str = dt.datetime.strftime(start_base_datetime, fmt.replace("T", " "))
+                else:
+                    print("{0:5s} - Start Base Datetime: {1}, Last Base Datetime: {2}".format(
+                        coin_name, start_base_datetime_str, last_base_datetime_str
+                    ), flush=True)
+                    start_base_datetime = dt.datetime.strptime(last_base_datetime_str, fmt.replace("T", " "))
+                    start_base_datetime = start_base_datetime + dt.timedelta(minutes=1)
+                    start_base_datetime_str = dt.datetime.strftime(start_base_datetime, fmt.replace("T", " "))
+
+            print()
+
+    def insert_missing_record(self, select_by_datetime, coin_name, previous_base_datetime_str, order_book_insert_sql, start_base_datetime_str):
+        with sqlite3.connect(sqlite3_order_book_db_filename, timeout=10, isolation_level=None,
+                             check_same_thread=False) as conn:
+            cursor = conn.cursor()
+            cursor.execute(select_by_datetime.format(coin_name), (previous_base_datetime_str,))
+            info = cursor.fetchone()
+
+            print(info)
+
+            cursor.execute(order_book_insert_sql.format(coin_name), (
+                start_base_datetime_str, convert_to_daily_timestamp(start_base_datetime_str), info[3],
+                info[4], info[5], info[6], info[7], info[8], info[9], info[10], info[11], info[12],
+                info[13],
+                info[14], info[15], info[16], info[17], info[18], info[19], info[20], info[21], info[22],
+                info[23],
+                info[24], info[25], info[26], info[27], info[28], info[29], info[30], info[31], info[32],
+                info[33],
+                info[34], info[35], info[36], info[37], info[38], info[39], info[40], info[41], info[42],
+                info[43],
+                info[44], info[45], info[46], info[47], info[48], info[49], info[50], info[51], info[52],
+                info[53],
+                info[54], info[55], info[56], info[57], info[58], info[59], info[60], info[61], info[62],
+                info[63],
+                info[64], info[65]
+            ))
+            conn.commit()
+
+
+
+
 
     def test_get_order_book(self):
         now = dt.datetime.now(timezone('Asia/Seoul'))

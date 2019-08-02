@@ -120,3 +120,4 @@ scripts/upbit_record_mac.sh
 *.png
 *.log.*
 *.swp
+*.db.old

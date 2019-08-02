@@ -4,7 +4,6 @@ import time
 import torch.nn as nn
 
 from common.global_variables import *
-from upbit.upbit_data import UpbitData, get_data_loader
 import matplotlib.pyplot as plt
 
 from predict.model_rnn import LSTM
@@ -13,6 +12,7 @@ from predict.early_stopping import EarlyStopping
 import numpy as np
 import os
 from common.logger import get_logger
+from upbit.upbit_orderbook_based_data import UpbitOrderBookBasedData, get_data_loader
 
 logger = get_logger("make_models_logger")
 
@@ -142,12 +142,11 @@ def main(model_type):
     lr = 0.001
 
     heading_msg = "**************************\n"
-    heading_msg += "{0} Model - WINDOW SIZE:{1}, FUTURE_TARGET_SIZE:{2}, UP_RATE:{3}, TRAIN_COLS:{4}, INPUT_SIZE:{5}, DEVICE:{6}".format(
+    heading_msg += "{0} Model - WINDOW SIZE:{1}, FUTURE_TARGET_SIZE:{2}, UP_RATE:{3}, INPUT_SIZE:{4}, DEVICE:{5}".format(
         model_type,
         WINDOW_SIZE,
         FUTURE_TARGET_SIZE,
         UP_RATE,
-        "ALL" if TRAIN_COLS_FULL else "OHLCV",
         INPUT_SIZE,
         DEVICE
     )
@@ -159,7 +158,7 @@ def main(model_type):
     coin_names = UPBIT.get_all_coin_names()
 
     for i, coin_name in enumerate(coin_names):
-        upbit_data = UpbitData(coin_name)
+        upbit_data = UpbitOrderBookBasedData(coin_name)
 
         x_train_original, x_train_normalized_original, y_train_original, y_train_normalized_original, y_up_train_original, \
         one_rate_train, train_size, \
